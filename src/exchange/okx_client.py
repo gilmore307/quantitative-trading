@@ -919,10 +919,10 @@ class OkxClientRegistry:
         self._clients: dict[str, OkxClient] = {}
 
     def for_strategy(self, strategy_name: str) -> OkxClient:
-        account = self.settings.account_for_strategy(strategy_name)
+        account = self.settings.active_live_account()
         if account.alias not in self._clients:
             self._clients[account.alias] = OkxClient(self.settings, account)
         return self._clients[account.alias]
 
     def accounts_by_strategy(self) -> dict[str, str]:
-        return {strategy: self.settings.account_for_strategy(strategy).alias for strategy in self.settings.strategies}
+        return {'active_live': self.settings.active_live_account().alias}

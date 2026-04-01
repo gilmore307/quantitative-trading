@@ -33,7 +33,7 @@ class BtcPollingIngestor:
         self.settings = settings
         self.hub = hub
         self.symbol = symbol
-        self.client = OkxClient(settings, settings.account_for_strategy("trend"))
+        self.client = OkxClient(settings, settings.active_live_account())
         self._bootstrapped_derivatives = False
 
     def _bars_from_rows(self, rows: Iterable[list[float]]) -> list[Bar]:

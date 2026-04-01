@@ -12,8 +12,7 @@ class ExchangeSnapshotProvider:
     settings: Settings
 
     def fetch_position(self, account: str, symbol: str) -> ExchangePositionSnapshot | None:
-        strategy_name = self.settings.strategy_for_account_alias(account) or account
-        okx = OkxClient(self.settings, self.settings.account_for_strategy(strategy_name))
+        okx = OkxClient(self.settings, self.settings.active_live_account())
         execution_symbol = self.settings.execution_symbol(strategy_name, symbol)
         snap = live_position_snapshot(okx.exchange, execution_symbol)
         if snap is None:

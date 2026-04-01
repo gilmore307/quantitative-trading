@@ -112,6 +112,12 @@ class Settings(BaseModel):
         mapped = self.strategy_symbols.get(strategy_name, {}).get(symbol, symbol)
         return self.ccxt_symbol(mapped)
 
+    def active_live_account(self) -> StrategyAccountConfig:
+        alias = self.strategy_account_aliases.get('active_live', 'active_live')
+        if alias not in self.strategy_accounts:
+            raise KeyError(f"No active live account configured for alias={alias}")
+        return self.strategy_accounts[alias]
+
     def account_for_strategy(self, strategy_name: str) -> StrategyAccountConfig:
         alias = self.strategy_account_aliases.get(strategy_name, "active_live")
         if alias not in self.strategy_accounts:

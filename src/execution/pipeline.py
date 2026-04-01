@@ -116,7 +116,7 @@ class ExecutionPipeline:
         if not isinstance(self.adapter, OkxExecutionAdapter):
             return True, None
         try:
-            strategy_name = self.settings.strategy_for_account_alias(account) or account
+            strategy_name = 'active_live'
             client = self.adapter._client(account)
             summary = client.account_balance_summary()
         except Exception as exc:

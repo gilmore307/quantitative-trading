@@ -81,11 +81,10 @@ class OkxExecutionAdapter(ExecutionAdapter):
         self.settings = settings
 
     def _client(self, account: str) -> OkxClient:
-        strategy_name = self.settings.strategy_for_account_alias(account) or account
-        return OkxClient(self.settings, self.settings.account_for_strategy(strategy_name))
+        return OkxClient(self.settings, self.settings.active_live_account())
 
     def submit_entry(self, *, account: str, symbol: str, side: str, size: float, reason: str) -> ExecutionReceipt:
-        strategy_name = self.settings.strategy_for_account_alias(account) or account
+        strategy_name = 'active_live'
         client = self._client(account)
         notional_usdt = float(self.settings.default_order_size_usdt) * float(size)
         execution_id = generate_execution_id(account=account, symbol=symbol, action='entry')
@@ -115,7 +114,7 @@ class OkxExecutionAdapter(ExecutionAdapter):
         )
 
     def submit_exit(self, *, account: str, symbol: str, reason: str, requested_size: float | None = None) -> ExecutionReceipt:
-        strategy_name = self.settings.strategy_for_account_alias(account) or account
+        strategy_name = 'active_live'
         client = self._client(account)
         execution_id = generate_execution_id(account=account, symbol=symbol, action='exit')
         client_order_id = build_okx_cl_ord_id(execution_id=execution_id, account=account, symbol=symbol, action='exit')
