@@ -5,8 +5,7 @@ from typing import Any
 
 
 ACTIVE_LIVE_ALIAS = 'active_live'
-FLAT_COMPARE_ALIAS = 'flat_compare'
-DEFAULT_COMPARE_ACCOUNTS = [ACTIVE_LIVE_ALIAS, FLAT_COMPARE_ALIAS]
+DEFAULT_COMPARE_ACCOUNTS = [ACTIVE_LIVE_ALIAS]
 
 
 def _attribution_confidence(raw: dict[str, Any]) -> str | None:

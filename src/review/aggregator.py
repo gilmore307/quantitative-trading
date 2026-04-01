@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import Any, Iterable
 
 from src.review.ingestion import canonicalize_history_row
-from src.review.performance import DEFAULT_COMPARE_ACCOUNTS, FLAT_COMPARE_ALIAS, ACTIVE_LIVE_ALIAS
+from src.review.performance import DEFAULT_COMPARE_ACCOUNTS, ACTIVE_LIVE_ALIAS
 from src.runtime.business_time import business_midnight
 
 
@@ -85,20 +85,11 @@ def _parse_dt(value: Any) -> datetime | None:
 
 
 def _row_timestamp(row: dict[str, Any]) -> datetime | None:
-    candidates = [
-        row.get('observed_at'),
-        row.get('timestamp'),
-        row.get('ts'),
-    ]
+    candidates = [row.get('observed_at'), row.get('timestamp'), row.get('ts')]
     summary = row.get('summary') if isinstance(row.get('summary'), dict) else {}
     receipt = row.get('receipt') if isinstance(row.get('receipt'), dict) else {}
     meta = row.get('meta') if isinstance(row.get('meta'), dict) else {}
-    candidates.extend([
-        summary.get('observed_at'),
-        summary.get('generated_at'),
-        receipt.get('observed_at'),
-        meta.get('generated_at'),
-    ])
+    candidates.extend([summary.get('observed_at'), summary.get('generated_at'), receipt.get('observed_at'), meta.get('generated_at')])
     for candidate in candidates:
         parsed = _parse_dt(candidate)
         if parsed is not None:
@@ -106,11 +97,7 @@ def _row_timestamp(row: dict[str, Any]) -> datetime | None:
     return None
 
 
-def _later_metric_candidate(
-    *,
-    current_ts: datetime | None,
-    candidate_ts: datetime | None,
-) -> bool:
+def _later_metric_candidate(*, current_ts: datetime | None, candidate_ts: datetime | None) -> bool:
     if candidate_ts is None:
         return current_ts is None
     if current_ts is None:
@@ -131,6 +118,7 @@ def aggregate_from_execution_history(
         window_start = window_start.astimezone(UTC)
     if window_end is not None:
         window_end = window_end.astimezone(UTC)
+
     counts = {alias: 0 for alias in DEFAULT_COMPARE_ACCOUNTS}
     fee_totals = {alias: 0.0 for alias in DEFAULT_COMPARE_ACCOUNTS}
     fee_seen = {alias: False for alias in DEFAULT_COMPARE_ACCOUNTS}
@@ -170,8 +158,8 @@ def aggregate_from_execution_history(
         filtered_rows.append((row_ts, idx, row))
 
     filtered_rows.sort(key=lambda item: (item[0] is None, item[0] or datetime.max.replace(tzinfo=UTC), item[1]))
-
     total_rows = len(filtered_rows)
+
     for row_ts, _, row in filtered_rows:
         summary = row.get('summary', {})
         plan_action = summary.get('plan_action')
@@ -180,7 +168,6 @@ def aggregate_from_execution_history(
 
         if plan_action in {'enter', 'exit'} and receipt_accepted is not False and strategy_stats_eligible:
             counts[ACTIVE_LIVE_ALIAS] += 1
-
         if summary.get('position_open_during_cycle'):
             exposure_counts[ACTIVE_LIVE_ALIAS] += 1
 
@@ -240,12 +227,7 @@ def aggregate_from_execution_history(
                     if earliest_metric_ts[alias] is None or row_ts < earliest_metric_ts[alias]:
                         earliest_metric_ts[alias] = row_ts
                         first_equity_start[alias] = float(equity_start_usdt)
-                _update_drawdown_state(
-                    equity_value=float(equity_start_usdt),
-                    peak_by_alias=equity_peak,
-                    max_drawdown_by_alias=max_drawdown_by_curve,
-                    alias=alias,
-                )
+                _update_drawdown_state(equity_value=float(equity_start_usdt), peak_by_alias=equity_peak, max_drawdown_by_alias=max_drawdown_by_curve, alias=alias)
             equity_usdt = metric_row.get('equity_usdt')
             if equity_usdt is not None:
                 if _later_metric_candidate(current_ts=latest_equity_snapshot_ts[alias], candidate_ts=row_ts):
@@ -257,12 +239,7 @@ def aggregate_from_execution_history(
                     elif earliest_metric_ts[alias] is None or row_ts < earliest_metric_ts[alias]:
                         earliest_metric_ts[alias] = row_ts
                         first_equity_start[alias] = float(equity_usdt)
-                _update_drawdown_state(
-                    equity_value=float(equity_usdt),
-                    peak_by_alias=equity_peak,
-                    max_drawdown_by_alias=max_drawdown_by_curve,
-                    alias=alias,
-                )
+                _update_drawdown_state(equity_value=float(equity_usdt), peak_by_alias=equity_peak, max_drawdown_by_alias=max_drawdown_by_curve, alias=alias)
             equity_end_usdt = metric_row.get('equity_end_usdt')
             if equity_end_usdt is not None:
                 if row_ts is None:
@@ -276,12 +253,7 @@ def aggregate_from_execution_history(
                     if latest_metric_ts[alias] is None or row_ts >= latest_metric_ts[alias]:
                         latest_metric_ts[alias] = row_ts
                         latest_equity_end[alias] = float(equity_end_usdt)
-                _update_drawdown_state(
-                    equity_value=float(equity_end_usdt),
-                    peak_by_alias=equity_peak,
-                    max_drawdown_by_alias=max_drawdown_by_curve,
-                    alias=alias,
-                )
+                _update_drawdown_state(equity_value=float(equity_end_usdt), peak_by_alias=equity_peak, max_drawdown_by_alias=max_drawdown_by_curve, alias=alias)
             elif equity_usdt is not None and row_ts is not None:
                 if latest_metric_ts[alias] is None or row_ts >= latest_metric_ts[alias]:
                     latest_metric_ts[alias] = row_ts
@@ -324,11 +296,7 @@ def aggregate_from_execution_history(
                 existing['unrealized_pnl_change_usdt'] = float(end_unrealized) - float(start_unrealized)
         curve_drawdown = max_drawdown_by_curve[alias]
         explicit_drawdown = latest_drawdown[alias]
-        chosen_drawdown = None
-        if curve_drawdown is not None and explicit_drawdown is not None:
-            chosen_drawdown = max(curve_drawdown, explicit_drawdown)
-        else:
-            chosen_drawdown = curve_drawdown if curve_drawdown is not None else explicit_drawdown
+        chosen_drawdown = max(curve_drawdown, explicit_drawdown) if curve_drawdown is not None and explicit_drawdown is not None else (curve_drawdown if curve_drawdown is not None else explicit_drawdown)
         if chosen_drawdown is not None and existing.get('max_drawdown_pct') is None:
             existing['max_drawdown_pct'] = round(float(chosen_drawdown), 6)
         if fee_seen[alias]:
@@ -355,8 +323,5 @@ def aggregate_from_execution_history(
             unrealized = existing.get('unrealized_pnl_usdt')
             if realized is not None or unrealized is not None:
                 existing['pnl_usdt'] = round(float(realized or 0.0) + float(unrealized or 0.0), ROUND_DIGITS)
-
-    if FLAT_COMPARE_ALIAS not in base_metrics:
-        base_metrics[FLAT_COMPARE_ALIAS] = {'source': 'aggregated', 'trade_count': 0, 'exposure_time_pct': 0.0}
 
     return base_metrics

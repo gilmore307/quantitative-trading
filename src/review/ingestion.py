@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from src.review.performance import DEFAULT_COMPARE_ACCOUNTS, FLAT_COMPARE_ALIAS, ACTIVE_LIVE_ALIAS
+from src.review.performance import DEFAULT_COMPARE_ACCOUNTS, ACTIVE_LIVE_ALIAS
 
 
 CANONICAL_NUMERIC_FIELDS = (
@@ -85,19 +85,10 @@ def _merge_metric_fields(target: dict[str, float], raw: dict[str, Any], *, overw
 
 
 def canonicalize_history_row(row: dict[str, Any]) -> dict[str, dict[str, float]]:
-    """Extract canonical performance hints from one execution artifact row.
-
-    The current live architecture is single-active-model oriented, so any
-    live execution-side metrics are aggregated under `active_live` rather than
-    a standing family-account matrix.
-    """
-
     metrics: dict[str, dict[str, float]] = {}
 
     receipt = row.get('receipt') or {}
     receipt_raw = receipt.get('raw') if isinstance(receipt, dict) else {}
-    if not isinstance(receipt_raw, dict):
-        receipt_raw = {}
     if isinstance(receipt_raw, dict) and receipt_raw:
         target = metrics.setdefault(ACTIVE_LIVE_ALIAS, {})
         _merge_metric_fields(target, receipt_raw, overwrite=False)
@@ -120,5 +111,4 @@ def canonicalize_history_row(row: dict[str, Any]) -> dict[str, dict[str, float]]
         target = metrics.setdefault(ACTIVE_LIVE_ALIAS, {})
         _merge_metric_fields(target, primary_summary, overwrite=False)
 
-    metrics.setdefault(FLAT_COMPARE_ALIAS, {})
     return metrics
