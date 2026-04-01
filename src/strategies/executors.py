@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 
 from src.config.settings import Settings
-from src.runners.regime_runner import RegimeRunnerOutput
+from src.runtime.regime_runner import RegimeRunnerOutput
 
 
 @dataclass(slots=True)

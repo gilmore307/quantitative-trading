@@ -9,7 +9,7 @@ from typing import Any
 from src.execution.pipeline import ExecutionCycleResult, ExecutionPipeline, ParallelExecutionCycleResult
 from src.review.account_metrics import build_account_metrics_from_cycle
 from src.review.compare import build_compare_snapshot
-from src.runtime.log_paths import RUNTIME_DIR, dated_jsonl_path
+from src.state.log_paths import RUNTIME_DIR, dated_jsonl_path
 from src.strategies.executors import build_shadow_plans
 
 
