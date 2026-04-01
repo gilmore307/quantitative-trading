@@ -1,6 +1,16 @@
 # Environment and Operations
 
-_Last updated: 2026-03-20_
+## Runtime role
+
+`quantitative-trading` is the live execution repository.
+It consumes the currently promoted trading instructions / active runtime configuration produced by the historical side.
+
+It does **not** define strategy families in-place as the primary control surface.
+The live side should focus on:
+- reading the active promoted runtime inputs
+- executing them continuously
+- recording execution artifacts
+- exposing execution health and deviation diagnostics
 
 ## Environment
 
@@ -10,26 +20,14 @@ Expected in `.env`:
 - `OKX_API_PASSPHRASE`
 - `OKX_DEMO=true`
 
-Important runtime controls:
+Important runtime controls should now be interpreted narrowly around live execution, for example:
 - `DRY_RUN=true|false`
-- `SYMBOLS=BTC-USDT-SWAP`
-- `STRATEGIES=trend,crowded,meanrev,compression,realtime`
-- `DEFAULT_ORDER_SIZE_USDT=...`
-- `BUFFER_CAPITAL_USDT=...`
+- live account / exchange credentials
+- runtime artifact paths
+- execution-safety toggles
+- active strategy / instruction pointer locations
 
-Other common tunables:
-- `TIMEFRAME=5m`
-- `TREND_LOOKBACK=20`
-- `CROWDED_LOOKBACK=20`
-- `MEANREV_LOOKBACK=20`
-- `MEANREV_THRESHOLD=0.015`
-- `MAX_OPEN_POSITIONS=2`
-- `SIGNAL_COOLDOWN_BARS=12`
-- `BUCKET_INITIAL_CAPITAL_USDT=500`
-
-Optional notifications/config:
-- `OPENCLAW_DISCORD_CHANNEL`
-- `NOTIFY_RUNTIME_WARNINGS=false`
+Old strategy-family-specific env examples from the hybrid repo should be treated as transitional only, not as the target control model for this repo.
 
 ## Main run paths
 
@@ -49,6 +47,13 @@ systemctl status quantitative-trading.service --no-pager -n 40
 systemctl restart quantitative-trading.service
 ```
 
+## Current operating model
+
+- one live account is the current intended operating model
+- trade daemon stays up continuously
+- active strategy / instruction changes should be detected without daemon restart
+- upgrade validation should run out-of-band
+
 ## Safety
 
 - designed for OKX demo trading first
@@ -56,3 +61,13 @@ systemctl restart quantitative-trading.service
 - current execution path is still under active hardening
 - dry-run vs live-trade state isolation still needs tightening
 - when investigating execution anomalies, prefer stopping the daemon first, then repairing exchange/local state, then restarting cleanly
+
+## Main code / script touchpoints
+
+- `src/runners/trade_daemon.py`
+- `src/runtime/strategy_pointer.py`
+- `src/execution/pipeline.py`
+- `src/runners/process_strategy_upgrade_request.py`
+- `src/runners/strategy_upgrade_event.py`
+- `src/state/`
+- `src/reconcile/`

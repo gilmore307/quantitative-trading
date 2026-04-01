@@ -1,63 +1,53 @@
 # Execution Artifacts
 
-_Last updated: 2026-03-20_
-
 ## Purpose
 
 Execution artifacts are the persistence boundary between:
-- runtime execution
-- later review/report generation
+- live runtime execution
+- later review / upgrade validation
 - operator debugging
 - historical analysis of execution integrity
 
 ## Current artifact files
 
-### Per-account cycle artifacts
+### Primary live-cycle artifacts
 Written under:
 - `logs/runtime/latest-execution-cycle.json`
-- `logs/runtime/execution-cycles.jsonl`
+- `logs/runtime/execution-cycles/YYYY-MM-DD.jsonl`
 
-### Parallel-cycle artifacts
+### Upgrade-event artifacts
 Written under:
-- `logs/runtime/latest-parallel-execution-cycle.json`
-- `logs/runtime/parallel-execution-cycles.jsonl`
+- `logs/runtime/latest-strategy-upgrade-request.json`
+- `logs/runtime/latest-strategy-upgrade-result.json`
+- `logs/runtime/latest-strategy-handover-marker.json`
 
 ## Writer entrypoints
 
-Primary writer module:
+Primary writer modules / entrypoints:
 - `src/runners/execution_cycle.py`
+- `src/runners/process_strategy_upgrade_request.py`
+- `src/runners/strategy_upgrade_event.py`
 
-Key functions:
-- `build_execution_artifact(result)`
-- `persist_execution_artifact(result)`
-- `build_parallel_execution_artifact(result)`
-- `persist_parallel_execution_artifact(result)`
+## Primary artifact model
 
-## Per-account artifact model
+The live system currently assumes one live account as the main operating model.
 
-Each per-account artifact contains several important layers.
+Each execution artifact should emphasize:
 
 ### 1. Raw execution-cycle payload
 Built from `ExecutionCycleResult`.
 
-### 2. Compare/debug snapshot
-Stored under:
-- `compare_snapshot`
-
-This is still useful transitional metadata, but it is no longer the sole organizing model for live execution.
-
-### 3. Verification snapshot
+### 2. Verification snapshot
 Stored under:
 - `verification_snapshot`
 
-This now records entry verification quality, including fields such as:
-- `entry_verified_hint`
-- `entry_trade_confirmed`
-- `entry_verification_attempt_count`
-- `local_position_reason`
-- `local_position_status`
+This records execution verification quality such as:
+- verification attempts
+- trade confirmation hints
+- local position status
+- reconcile-related diagnostics
 
-### 4. Attribution snapshot
+### 3. Attribution snapshot
 Stored under:
 - `attribution_snapshot`
 
@@ -66,67 +56,55 @@ This bridges execution into review/accounting with fields such as:
 - `client_order_id`
 - `order_id`
 - `trade_ids`
-- ledger leg identifiers
 - fee / realized / equity provenance hints
 
-### 5. Summary layer
-Stored under:
-- `summary`
+### 4. Active strategy metadata
+Stored under summary/artifact metadata, including fields such as:
+- `active_strategy_version`
+- `active_strategy_source`
+- `active_strategy_family`
+- `active_strategy_config_path`
+- `active_strategy_promoted_at`
+- `active_strategy_promotion_note`
 
-This is the compact operator/review-facing layer.
-
-It includes things such as:
-- runtime mode
-- regime
-- plan action / account / reason
-- route/policy status
-- receipt acceptance
-- diagnostics
-- account metrics
-- strategy stats eligibility
-- execution recovery markers
-- verification quality highlights
-
-## Parallel artifact model
-
-The parallel-cycle artifact records:
-- shared regime context
-- one nested per-strategy result per account
-- entered / accepted / blocked account summaries
-- multi-account cycle summary
-
-This is the direction the project is moving toward as the canonical live-cycle structure.
+### 5. Upgrade handover metadata
+Where relevant, upgrade-time artifacts should surface:
+- open-position observation
+- handover policy
+- handover decision
+- handover marker reference
 
 ## Canonical direction
 
 ### Canonical enough today
-- execution artifact file locations
-- per-account summary and account metrics fields
-- verification snapshot fields
-- execution recovery / excluded-trade semantics
-- parallel-cycle artifact existence and shape
+- live execution artifact file locations
+- execution summary / verification fields
+- active strategy metadata tagging
+- upgrade request/result/handover marker artifact family
 
-### Still transitional
-- compare/debug/router-composite semantics
-- some older field names built around the previous single-route model
-- long-window accounting semantics
+### Transitional / legacy
+- compare/debug/router-composite semantics from the old hybrid repo
+- multi-account parallel artifact assumptions
+- older field names built around the previous router/composite model
 
 ## Operator usage
 
-Use per-account latest artifacts when:
-- diagnosing one account
-- checking one account’s latest execution path
-- inspecting one account’s verification / reconcile details
+Use execution-cycle artifacts when:
+- diagnosing the latest live execution path
+- checking verification / reconcile details
+- inspecting which active strategy version was running
 
-Use parallel-cycle artifacts when:
-- understanding what all accounts did in the same shared cycle
-- debugging multi-account live execution behavior
-- preparing future multi-account review/report migration
+Use upgrade request/result artifacts when:
+- validating a promotion-triggered strategy upgrade
+- auditing handover policy and decision when positions were open
+- diagnosing post-upgrade behavior
 
-## Current gaps
+## Main code / script touchpoints
 
-The biggest remaining gaps are:
-- making parallel artifacts the primary downstream review input
-- tightening dry-run/test/live execution-environment isolation
-- deeper ID-based attribution and recovery tooling
-- stronger canonical realized/unrealized/funding/equity semantics
+- `src/execution/pipeline.py`
+- `src/runners/execution_cycle.py`
+- `src/runtime/strategy_pointer.py`
+- `src/runners/process_strategy_upgrade_request.py`
+- `src/runners/strategy_upgrade_event.py`
+- `src/state/store.py`
+- `src/state/live_position.py`

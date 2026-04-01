@@ -1,31 +1,35 @@
 # Multi-Account Parallel Execution
 
-_Last updated: 2026-03-20_
+## Status
 
-## Goal
+This document is now retained only as **legacy / transitional context** from the older hybrid repository.
 
-Run all strategy accounts in parallel:
+It does **not** describe the current primary operating model for `quantitative-trading`.
 
-- `trend`
-- `crowded`
-- `meanrev`
-- `compression`
-- `realtime`
+## Current primary operating model
 
-The market-state / regime-detection layer may remain shared, but real execution should no longer be limited to one routed account per cycle.
+The current live trading model is:
+- one live account
+- one active promoted strategy / instruction set at a time
+- continuous trade daemon
+- upgrade validation handled via `strategy_upgrade_event`
 
-## Current status
+## Why keep this document for now
 
-### Already landed
-- `src.strategies.executors.build_parallel_plans(output)` exists
-- `ExecutionPipeline.build_parallel_plans(output)` exists
-- `ExecutionPipeline.run_cycle_parallel()` exists
-- daemon has started moving onto the parallel-cycle path
-- parallel execution artifacts are now being written
+Some old code, field names, and review/export structures may still reference parallel-account or router/composite ideas from the earlier design.
 
-## Architectural rule
+This document is kept temporarily so those references can be recognized and migrated cleanly.
 
-Going forward:
-- shared market-state detection is allowed
-- shared single-account routing as the only real execution path is not
-- every strategy account must be able to trade in the same cycle if its own executor conditions are met
+## Migration rule
+
+Do not treat this document as the target architecture.
+
+When code or scripts are migrated into `quantitative-trading`, prefer the single-account live model unless a later deliberate design change says otherwise.
+
+## Likely legacy-touch modules
+
+- `src/execution/pipeline.py`
+- `src/runners/execution_cycle.py`
+- `src/review/`
+- `src/routing/`
+- `src/strategies/executors.py`

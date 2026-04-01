@@ -16,9 +16,10 @@ This docs tree is the canonical home for realtime trading / live execution / run
 ## Core operating model
 
 - trade daemon is the continuous live-running state
-- historical research promotes new strategy/parameter versions
+- historical research promotes new strategy / parameter / trading-instruction versions
 - trade daemon detects active strategy changes without restarting
 - `strategy_upgrade_event` is the canonical promotion-triggered validation/helper event
+- one live account is the current intended operating model
 - live review focuses on execution fidelity and execution-system health, not direct model optimization
 
 ## Realtime architecture / operations
@@ -27,8 +28,6 @@ This docs tree is the canonical home for realtime trading / live execution / run
 - `execution-artifacts.md`
 - `environment-and-operations.md`
 - `state-and-artifacts.md`
-- `multi-account-parallel-execution.md`
-- `router-composite.md`
 - `regime-and-decision-flow.md`
 
 ## Live review / promotion / workflow
@@ -37,6 +36,13 @@ This docs tree is the canonical home for realtime trading / live execution / run
 - `review-architecture.md`
 - `parameter-promotion-workflow-live.md`
 - `research-runtime-separation-live.md`
+
+## Legacy transitional docs
+
+- `multi-account-parallel-execution.md`
+- `router-composite.md`
+
+These remain only as migration context from the old hybrid repository and should not be treated as the current target architecture.
 
 ## Documentation rule for this repo
 
