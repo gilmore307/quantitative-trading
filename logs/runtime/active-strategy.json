@@ -1,0 +1,11 @@
+{
+  "version": "dummy-v1",
+  "updated_at": "2026-04-01T16:08:30.069944+00:00",
+  "source": "dummy_e2e",
+  "metadata": {
+    "family": "dummy",
+    "config_path": "configs/dummy/dummy-v1.json",
+    "promoted_at": "2026-04-01T16:08:30.069944+00:00",
+    "promotion_note": "dummy smoke test version 1"
+  }
+}
