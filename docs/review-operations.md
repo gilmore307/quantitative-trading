@@ -1,49 +1,55 @@
 # Review Operations
 
-This document is the operator/runbook entry for the review pipeline.
+This document describes the review path for the live trading system.
 
-## Current scope
+## New primary framing
 
-The project now has a first usable review artifact pipeline with:
+Realtime review is no longer the place where model optimization happens.
 
-- canonical performance ingestion from execution artifacts
-- execution-history aggregation
-- weekly/monthly/quarterly review report generation
-- JSON + Markdown export under `reports/trade-review/`
+Historical research is responsible for:
+- ranking
+- selection
+- retune
+- promotion / archive
+- family / variant / parameter optimization
 
-Current operating assumption:
+Realtime review is responsible for:
+- validating execution fidelity
+- diagnosing execution deviations
+- checking execution-system health
+- producing clues that may later be investigated on the historical-research side
 
-- live trading runs one real account on the latest promoted strategy version
-- the trade daemon is a separate long-running process and should keep running during review generation
-- live review is for execution + realized-result diagnostics
-- live review is not the primary parameter-optimization loop
+In short:
+- historical line optimizes the model
+- realtime line verifies execution and operational health
 
-## Primary artifact source
+## Main review question
 
-Execution history is read from:
+Realtime review should no longer primarily ask:
+- "is this strategy good?"
 
-- `logs/runtime/execution-cycles/YYYY-MM-DD.jsonl` business-timezone daily partitions in `America/New_York`
+It should ask:
+- "was the current strategy executed correctly and faithfully?"
 
-Review reports are written to:
+## Canonical review trigger
 
-- `reports/trade-review/`
+The primary review trigger is now:
+- **promotion-triggered strategy upgrade**
 
-Convenience files maintained automatically:
+Not:
+- weekly ritual by default
 
-- `latest_weekly.json` / `latest_weekly.md`
-- `latest_monthly.json` / `latest_monthly.md`
-- `latest_quarterly.json` / `latest_quarterly.md`
-- `index.json` — rolling report index with latest-by-cadence pointers
+The most important review moment is when a promoted strategy / parameter version becomes active in live trading.
 
 ## Strategy-upgrade review
 
-This is now the canonical live-operations review trigger.
+The canonical live review path is now the unified strategy-upgrade event.
 
 Primary intent:
 - validate the effect of a newly promoted strategy / parameter version
 - review theoretical-signal vs actual-execution deviations
 - review execution quality, position drift, and operational anomalies
-- keep trading running while validation is generated; the review is attached to the same promotion-triggered strategy upgrade event and does not force daemon mode switches
+- keep trading running while validation is generated
 
 Run the unified strategy-upgrade event runner:
 
@@ -57,43 +63,92 @@ Optional helper cleanup:
 ./.venv/bin/python -m src.runners.strategy_upgrade_event --destructive
 ```
 
+## Trade and review relationship
+
+### Trade daemon
+- long-running
+- always on
+- keeps reading the latest active strategy pointer
+- does not stop because of review
+- does not stop because of calibration/helper work
+
+### Review path
+- out-of-band
+- read-oriented
+- triggered mainly by promotion / upgrade events
+- does not control the trade daemon’s main loop
+
 ## Position handling during strategy upgrade
 
-If a live position exists when the active strategy version changes, do not stop the daemon just to "make the upgrade clean".
+If a live position exists when the active strategy version changes, do not stop the daemon just to make the upgrade look clean.
 
 Use strategy-switch handling instead:
-
 - keep trade running on the new active version immediately
-- treat any existing live position under the same logic used for strategy switching / ownership transition
-- if the new active strategy wants to keep/own the position, continue managing it under the new strategy context
-- if the new active strategy wants to close-and-wait, let the normal execution/switch path unwind it rather than forcing a separate upgrade-time stopout
-- record the upgrade request even when a position is open; open position is not a blocker for the strategy-upgrade event
+- reuse normal ownership-transition / switch semantics
+- if the new active strategy should keep the position, continue under the new context
+- if the new active strategy should close-and-wait, let the normal execution/switch path unwind it
+- record the upgrade request even when a position is open
 
-## Monthly review
+## Core review outputs
 
-This is an aggregate live-operations summary, not the main parameter-discussion layer.
+A realtime review should emphasize:
 
-## Quarterly review
+### A. Signal fidelity
+- theoretical signal timestamp
+- actual order timestamp
+- signal-to-order delay
+- missed signals
+- duplicated executions
+- stale signal execution
 
-This is a structural live-operations / execution-system review layer.
+### B. Position fidelity
+- theoretical position
+- actual position
+- position drift
+- drift duration
+- reconciliation status
 
-## Output contents
+### C. Execution health
+- order submit success rate
+- rejects / cancels / timeouts
+- partial fills
+- broker / exchange errors
+- data lag / feed anomalies
 
-Each review export produces:
+### D. Deviation diagnostics
+- latency
+- missed order
+- duplicate order
+- manual override
+- exchange reject
+- partial fill
+- state desync
+- stale data
+- reconciliation gap
 
-- one JSON artifact
-- one Markdown artifact
+### E. Actionable execution improvements
+- routing improvements
+- reconcile improvements
+- signal/order coupling improvements
+- retry / protection logic improvements
 
-The report currently contains:
+## What live review should not directly do
 
-- executive summary
-- recommended actions
-- realized live-performance summary
-- execution-quality / deviation sections
-- section status summary
+Realtime review should not be the primary place for:
+- family promotion/demotion
+- variant淘汰 /淘汰 decisions
+- parameter retuning
+- cluster ranking recomputation
+- direct model updates
 
-## Operator note
+Those belong to the historical research line.
 
-`review` and `calibrate` should be understood as event/helper concepts, not daemon runtime modes.
+## Secondary scheduled reviews
 
-Use the unified `strategy_upgrade_event` as the primary operator entry when a new promoted strategy version is adopted in live trading.
+Low-frequency scheduled health reviews may still exist.
+But they should be treated as secondary health checks, not the main review architecture.
+
+The main review architecture is:
+- promotion-triggered
+- upgrade-validation oriented
+- execution-diagnostics first

@@ -2,49 +2,76 @@
 
 ## Goal
 
-Document the runtime mode model and operational meaning of each mode.
+Document the long-running runtime state model and the event model around strategy upgrades.
 
-## Modes and events
+## Long-running modes
+
+Only long-lived runtime states should be modeled as modes:
 
 - `develop` — idle development / maintenance mode; do not run normal strategy execution or routing
-- `trade` — normal trading mode; the only mode that runs normal strategy routing and real execution
-  - runtime check: only verify enough available USDT margin before a real entry
-- `reset` — development-only destructive reset: flatten, verify flat, convert residual assets if needed, rebuild/reset local bucket state, then auto-return to `develop`
+- `trade` — normal trading mode; the long-running daemon state that executes the current active strategy
+- `reset` — development-only destructive reset: flatten, verify flat, convert residual assets if needed, rebuild/reset local bucket state, then return to `develop`
 - `test` — dedicated execution-system test mode; does not run normal strategy logic and should return to `develop`
-  - workflow: fixed demo-only stress cycle on the configured test symbol/account
-  - default pattern: entry -> add(s) -> exit, repeated for `TEST_CYCLES`
-  - safeguard: refuses to run unless `OKX_DEMO=true`
 
 ## Events / jobs
 
-- `strategy_upgrade_event` — the main promotion-triggered event; when the active strategy version changes, trade keeps running, helper/calibration actions may run, and upgrade validation/review is emitted around the same upgrade event
-- `review` / `calibrate` — legacy sub-steps / compatibility labels inside the broader strategy-upgrade event; they should not be treated as standalone runtime modes
+These are not long-running modes.
+They are events/jobs that happen around the always-on trade daemon.
+
+- `strategy_upgrade_event` — the canonical promotion-triggered upgrade event
+- `review` — legacy compatibility label; now treated as one sub-step inside `strategy_upgrade_event`
+- `calibrate` — legacy compatibility label; now treated as one sub-step inside `strategy_upgrade_event`
+
+## Core runtime interpretation
+
+### Trade daemon
+
+`trade` is the only normal always-on live-trading state.
+
+The daemon should:
+- keep running continuously
+- keep reading the current active strategy pointer
+- detect active strategy version changes without requiring a restart
+- continue trading with the new active strategy version once detected
+- emit upgrade-related request artifacts out-of-band instead of blocking the main loop
+
+### Review / calibrate are not modes
+
+`review` and `calibrate` should no longer be treated as standalone runtime modes.
+
+They are now best understood as:
+- compatibility labels
+- helper/event concepts
+- sub-steps of the broader `strategy_upgrade_event`
+
+## Strategy hot-swap model
+
+The intended runtime model is:
+
+1. historical research promotes a new strategy/parameter version
+2. active strategy pointer is updated
+3. trade daemon detects the new active version while staying alive
+4. daemon continues trading with the new version
+5. daemon emits a `strategy_upgrade_event_requested` signal for out-of-band validation / helper work
+
+This is a hot-swap model, not a stop-the-world mode-switch model.
+
+## Position handling during upgrade
+
+If an upgrade happens while a position is open:
+- do not force an upgrade-only flatten just to make the transition look clean
+- handle the position using the same strategy-switch / ownership-transition semantics used elsewhere
+- treat upgrade as a source of strategy switch, not as a separate trading philosophy
 
 ## User terminology
 
-- **strategy upgrade event** = promotion-triggered online upgrade handling: detect new active strategy, run helper/calibration steps if needed, and emit upgrade validation review while trade continues running
-- **calibrate** = legacy shorthand for the helper/baseline-refresh portion of the strategy upgrade event
-- **reset** = destructive development reset that clears historical/runtime state, then return to `develop`
+- **strategy upgrade event** = the promotion-triggered online upgrade handling path
+- **review** = upgrade validation / execution diagnosis sub-step
+- **calibrate** = helper / baseline-refresh sub-step
 
-## Current operating interpretation
+## Rule of thumb
 
-- live trading now assumes a **single real account running the current promoted strategy version**
-- `trade` should be a long-running daemon that keeps running during strategy-upgrade events and any attached validation/report steps
-- strategy changes should be hot-loaded from the latest promoted strategy artifacts rather than requiring a stop-the-world review/calibrate/trade sequence
-- when trade detects an active-strategy version change, it should at minimum emit a `strategy_upgrade_event_requested` record so the upgrade-validation path can run out-of-band without stopping live execution
-- live upgrade validation is no longer time-driven first; it is primarily promotion-triggered
-- live `review` should focus on:
-  - realized live pnl/equity summaries
-  - theoretical-signal vs actual-execution deviations
-  - order / position / sync health
-  - execution-layer improvements
-
-## Current state
-
-- Mode system is active and durable.
-- `review` / `calibrate` should be treated as event/job concepts only; they are no longer valid runtime modes in the enum / policy layer.
-- This is a core project concept and should stay synchronized with runtime implementation.
-
-## Next step
-
-Keep this file updated whenever mode semantics or auto-transitions change.
+Think of the system as:
+- `trade` = the continuous state
+- `strategy_upgrade_event` = the main upgrade-time event
+- `review` / `calibrate` = internal event parts, not first-class modes

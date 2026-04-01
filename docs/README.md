@@ -13,6 +13,14 @@ This docs tree is the canonical home for realtime trading / live execution / run
 - `parameter-promotion-workflow-live.md`
 - `research-runtime-separation-live.md`
 
+## Core operating model
+
+- trade daemon is the continuous live-running state
+- historical research promotes new strategy/parameter versions
+- trade daemon detects active strategy changes without restarting
+- `strategy_upgrade_event` is the canonical promotion-triggered validation/helper event
+- live review focuses on execution fidelity and execution-system health, not direct model optimization
+
 ## Realtime architecture / operations
 
 - `runtime-and-modes.md`

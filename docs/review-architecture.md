@@ -1,76 +1,84 @@
 # Review Architecture
 
-_Last updated: 2026-03-20_
-
 ## Purpose
 
 The review system turns runtime execution history into:
-- weekly/monthly/quarterly assessments
+- upgrade-validation reports
 - operator-readable execution diagnostics
-- realized live-performance summaries for the promoted live strategy
-- portable JSON/Markdown report artifacts
+- realized live-performance summaries for the currently promoted live strategy
+- portable JSON/Markdown review artifacts
+
+## Core architectural shift
+
+Realtime review is no longer modeled as the place where strategy optimization happens.
+
+Instead:
+- model optimization happens on the historical/backtest line
+- realtime review focuses on execution fidelity and operational health
+
+This means review should center on:
+- theoretical vs actual execution
+- position drift
+- execution errors and instability
+- upgrade-impact validation
+
+## Primary trigger
+
+The primary trigger for full review is now:
+- strategy / parameter promotion
+- active strategy version change
+- `strategy_upgrade_event`
+
+Scheduled weekly/monthly/quarterly summaries may still exist as secondary operational health reports, but they are no longer the core review identity.
 
 ## High-level pipeline
 
-Current review flow:
-
 1. runtime writes execution artifacts under `logs/runtime/`
-2. per-cycle runtime rows are canonicalized in `src/review/ingestion.py`
-3. `src/review/aggregator.py` aggregates history into per-account metrics
-4. `src/review/performance.py` normalizes known-account rows
-5. `src/review/report.py` builds summaries, sections, executive summary, and actions
-6. `src/review/export.py` writes JSON + Markdown artifacts
-7. review runners in `src/runners/` expose weekly/monthly/quarterly entrypoints
+2. trade daemon detects active strategy version changes while continuing to run
+3. daemon emits `strategy_upgrade_event_requested` and related request artifacts out-of-band
+4. upgrade consumer runs the unified `strategy_upgrade_event`
+5. review/export path summarizes execution quality and deviation around the upgrade context
 
 ## Runtime artifact reality
 
-The review path should now assume a single promoted live strategy running in one real account.
+The review path should assume:
+- a continuously running trade daemon
+- a currently active promoted strategy version
+- potential hot-swap between strategy versions without daemon restart
 
-### Single-cycle account artifacts
-- `logs/runtime/latest-execution-cycle.json`
-- `logs/runtime/execution-cycles/YYYY-MM-DD.jsonl`
+### Core artifact families
+- execution cycle artifacts
+- strategy upgrade request/result artifacts
+- handover markers for upgrade-time position handling
 
-These are the primary review inputs for live operations.
+## Review emphasis
 
-## Module responsibilities
+### Execution fidelity
+Was the intended strategy behavior actually expressed in orders and positions?
 
-### `src/review/ingestion.py`
-- extract canonical review metrics from one execution artifact row
-- merge receipt/raw hints, summary metrics, compare/debug data, and account metrics
+### Position fidelity
+Did actual positions stay aligned with intended positions and ownership?
 
-### `src/review/aggregator.py`
-- load JSONL execution history
-- derive cross-cycle metrics such as trade counts, fees, funding, pnl/equity snapshots
-- provide live-account aggregated metrics for reports
+### Upgrade validation
+What changed after the active strategy version changed?
+Did execution quality worsen, remain stable, or improve?
 
-### `src/review/performance.py`
-- guarantee a stable row schema for the active live-account review path
-- keep exported performance summaries deterministic
+### Operational health
+Were there rejects, state desyncs, stale signals, or reconciliation issues?
 
-### `src/review/report.py`
-- build operator-facing report structure
-- build performance summaries
-- build execution-quality summaries
-- build live-operations recommendations and deviation summaries
+## Position handling during upgrade
 
-### `src/review/export.py`
-- export structured review reports to JSON and Markdown
-- provide path/filename conventions for report artifacts
+When an upgrade occurs while a position is open:
+- treat it as a strategy-switch / ownership-transition problem
+- do not introduce a separate mandatory upgrade-time flatten rule
+- record the handover observation, decision, and marker for auditability
 
-## Review cadences
+## Output model
 
-### Weekly
-- canonical live-operations review cadence
-- realized live-pnl / equity summary for the completed week
-- theoretical-signal vs actual-execution deviation review
-- execution quality checks while trading can continue
-
-### Monthly
-- multi-week realized live-performance summary
-- execution deviation trend review
-- operational stability review
-
-### Quarterly
-- structural execution-system review
-- long-horizon live-operations stability review
-- broker / exchange / runtime integration review
+A full upgrade-oriented review should be able to describe:
+- previous strategy version
+- current active strategy version
+- switch boundary / observed upgrade time
+- pre/post-upgrade execution observations
+- deviation summary
+- handover decision / marker when relevant
