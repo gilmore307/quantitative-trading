@@ -20,3 +20,4 @@ Start here:
 Repository structure note:
 - `src/` is the authoritative live/runtime code
 - the older `flows/` migration workspace has been retired to avoid duplicate logic and maintenance confusion
+- regime labels inside the codebase (`trend`, `range`, `compression`, `crowded`, `shock`) describe market/execution decision categories, not separate live accounts

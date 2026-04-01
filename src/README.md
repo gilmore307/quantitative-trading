@@ -16,6 +16,11 @@ Live daemon/runtime semantics:
 - runtime helpers such as business time and bucket state
 - runtime-side regime runner / live decision input bridge
 
+Current terminology note:
+- regime labels such as `trend`, `range`, `compression`, `crowded`, and `shock` are execution-decision / market-state categories
+- they are **not** separate live accounts or separate live strategy families in the current architecture
+- live trading routes through the single `active_live` execution path
+
 ### `src/upgrade/`
 Promotion-time live runtime handling:
 - active strategy pointer

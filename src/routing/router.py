@@ -60,7 +60,7 @@ def summarize_decision(decision: RegimeDecision, route: RouteDecision) -> Decisi
     if not decision.tradable:
         diagnostics.append('regime_marked_non_tradable')
     if route.account is None:
-        diagnostics.append('no_strategy_account_routed')
+        diagnostics.append('no_active_live_route')
     if decision.confidence < 0.5:
         diagnostics.append('low_confidence')
     elif decision.confidence < 0.7:
@@ -81,7 +81,7 @@ def summarize_decision(decision: RegimeDecision, route: RouteDecision) -> Decisi
         block_reason = 'regime_non_tradable'
         allow_reason = None
     elif route.account is None:
-        block_reason = route.block_reason or 'no_route_for_regime'
+        block_reason = route.block_reason or 'no_active_live_route'
         allow_reason = None
     elif decision.confidence < 0.35:
         trade_enabled = False

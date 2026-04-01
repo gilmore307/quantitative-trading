@@ -49,19 +49,19 @@ WEEKLY_AUTO_CANDIDATES = [
 ]
 
 MONTHLY_DISCUSS_FIRST = [
-    'trend_follow_through_thresholds',
-    'meanrev_reversion_thresholds',
-    'compression_breakout_thresholds',
-    'crowded_reversal_thresholds',
+    'follow_through_thresholds',
+    'reversion_thresholds',
+    'compression_thresholds',
+    'crowding_thresholds',
     'shock_event_thresholds',
     'leverage_scaling',
     'stop_take_profile',
-    'router_switch_gating',
+    'execution_gating',
 ]
 
 STRUCTURAL_PARAMS = [
     'regime_taxonomy',
-    'strategy_account_set',
+    'active_live_account_model',
     'review_metric_system',
     'risk_framework',
     'rl_training_objective',
