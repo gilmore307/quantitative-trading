@@ -12,7 +12,7 @@ from src.runtime.mode_policy import policy_for_mode
 from src.upgrade.strategy_pointer import ActiveStrategySnapshot, load_active_strategy_snapshot
 from src.runtime.store import RuntimeStore
 from src.state.live_position import LivePosition
-from src.strategies.executors import ExecutionPlan, executor_for
+from src.execution.plan import ExecutionPlan, build_active_strategy_plan
 
 
 @dataclass(slots=True)
@@ -79,8 +79,7 @@ class ExecutionPipeline:
         return load_active_strategy_snapshot()
 
     def build_plan(self, output: RegimeRunnerOutput, active_strategy: ActiveStrategySnapshot | None = None) -> ExecutionPlan:
-        strategy_label = None if active_strategy is None else str(active_strategy.version or (active_strategy.metadata or {}).get('family') or 'runtime-default').lower()
-        return executor_for(output, strategy_label=strategy_label).build_plan(output)
+        return build_active_strategy_plan(output, active_strategy)
 
     def _initial_trace(self, mode, mode_policy, regime_output: RegimeRunnerOutput) -> ExecutionDecisionTrace:
         summary = regime_output.decision_summary or {}

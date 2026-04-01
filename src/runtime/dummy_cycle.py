@@ -11,7 +11,7 @@ from src.execution.pipeline import ExecutionCycleResult, ExecutionDecisionTrace,
 from src.runtime.regime_runner import RegimeRunnerOutput
 from src.runtime.store import RuntimeStore
 from src.state.live_position import LivePosition, LivePositionStatus
-from src.strategies.executors import ExecutionPlan
+from src.execution.plan import ExecutionPlan
 from src.upgrade.strategy_pointer import ActiveStrategySnapshot
 
 

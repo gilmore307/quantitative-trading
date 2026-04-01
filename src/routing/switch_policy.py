@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 
 from src.state.live_position import LivePosition, LivePositionStatus
-from src.strategies.executors import ExecutionPlan
+from src.execution.plan import ExecutionPlan
 
 
 REGIME_PRIORITY = {
