@@ -14,7 +14,7 @@ from src.regimes.layered_classifier import LayeredRegimeClassifier
 from src.routing.router import summarize_decision, route_regime
 
 
-OUT_DIR = Path('/root/.openclaw/workspace/projects/crypto-trading/logs/runtime')
+OUT_DIR = Path('/root/.openclaw/workspace/projects/quantitative-trading/logs/runtime')
 OUT_DIR.mkdir(parents=True, exist_ok=True)
 LATEST_PATH = OUT_DIR / 'latest-regime.json'
 

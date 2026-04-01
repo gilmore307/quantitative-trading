@@ -86,7 +86,7 @@ class ExecutionPipeline:
         return ExecutionDecisionTrace(
             mode=mode.value,
             mode_allows_routing=mode_policy.allow_normal_routing,
-            decision_trade_enabled=bool(summary.get('trade_enabled', regime_output.final_decision.get('tradable', False))),
+            decision_trade_enabled=bool(summary.get('trade_enabled', True)),
             route_trade_enabled=bool(regime_output.route_decision.get('trade_enabled', False)),
             pipeline_trade_enabled=False,
             pipeline_entered=False,
@@ -274,12 +274,6 @@ class ExecutionPipeline:
             trace.allow_reason = None
             trace.diagnostics.append('mode_blocked')
             plan = ExecutionPlan(regime=regime_output.final_decision['primary'], account=None, action='hold', reason=trace.block_reason)
-        elif not trace.decision_trade_enabled:
-            if trace.block_reason is None:
-                trace.block_reason = 'decision_trade_disabled'
-            trace.allow_reason = None
-            trace.diagnostics.append('decision_gate_blocked')
-            plan = ExecutionPlan(regime=regime_output.final_decision['primary'], account=None, action='hold', reason=trace.block_reason)
         else:
             plan = self.build_plan(regime_output)
         if mode_policy.force_dry_run:
@@ -301,7 +295,7 @@ class ExecutionPipeline:
             trace.allow_reason = None
             plan = ExecutionPlan(regime=regime_output.final_decision['primary'], account=None, action='hold', reason=trace.block_reason)
             cycle_result = self._run_single_account_plan(regime_output, plan, trace, None)
-            strategy_name = 'idle'
+            strategy_name = 'active_live'
         else:
             plan = self.build_plan(regime_output)
             trace = self._initial_trace(mode, mode_policy, regime_output)
