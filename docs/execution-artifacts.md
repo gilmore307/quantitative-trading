@@ -82,10 +82,9 @@ Where relevant, upgrade-time artifacts should surface:
 - active strategy metadata tagging
 - upgrade request/result/handover marker artifact family
 
-### Transitional / legacy
-- compare/debug/router-composite semantics from the old hybrid repo
-- multi-account parallel artifact assumptions
-- older field names built around the previous router/composite model
+### Old hybrid-repo leftovers to remove over time
+- compare/debug semantics that only existed for the former router-composite path
+- field names or payload shapes tied to now-removed multi-account assumptions
 
 ## Operator usage
 

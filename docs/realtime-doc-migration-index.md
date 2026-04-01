@@ -8,8 +8,6 @@ This docs tree was seeded from realtime/live-operation material previously livin
 - `review-operations.md`
 - `review-architecture.md`
 - `environment-and-operations.md`
-- `multi-account-parallel-execution.md`
-- `router-composite.md`
 - `regime-and-decision-flow.md`
 - `state-and-artifacts.md`
 

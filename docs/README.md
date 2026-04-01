@@ -37,13 +37,6 @@ This docs tree is the canonical home for realtime trading / live execution / run
 - `parameter-promotion-workflow-live.md`
 - `research-runtime-separation-live.md`
 
-## Legacy transitional docs
-
-- `multi-account-parallel-execution.md`
-- `router-composite.md`
-
-These remain only as migration context from the old hybrid repository and should not be treated as the current target architecture.
-
 ## Documentation rule for this repo
 
 Each substantive realtime doc should explicitly list the main code / script touchpoints it depends on.
