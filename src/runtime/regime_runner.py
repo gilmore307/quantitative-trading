@@ -11,7 +11,6 @@ from src.market.hub import MarketDataHub
 from src.market.ingestion import BtcPollingIngestor
 from src.market.okx_ws import OkxPublicWsClient
 from src.regimes.layered_classifier import LayeredRegimeClassifier
-from src.routing.router import summarize_decision, route_regime
 
 
 OUT_DIR = Path('/root/.openclaw/workspace/projects/quantitative-trading/logs/runtime')
@@ -59,8 +58,27 @@ class BtcRegimeRunner:
     def _build_output(self) -> RegimeRunnerOutput:
         snapshot = self.hub.snapshot(self.symbol)
         layered = self.layered.classify(snapshot)
-        route = route_regime(layered.final.primary)
-        summary = summarize_decision(layered.final, route)
+        route = {
+            'regime': layered.final.primary.value,
+            'account': 'active_live',
+            'active_route': 'active_live',
+            'trade_enabled': True,
+            'allow_reason': 'route_to_active_live',
+            'block_reason': None,
+        }
+        summary = {
+            'regime': layered.final.primary.value,
+            'confidence': layered.final.confidence,
+            'tradable': True,
+            'account': 'active_live',
+            'active_route': 'active_live',
+            'trade_enabled': True,
+            'allow_reason': 'route_to_active_live',
+            'block_reason': None,
+            'reasons': layered.final.reasons,
+            'secondary': [x.value for x in layered.final.secondary],
+            'diagnostics': [],
+        }
         payload = RegimeRunnerOutput(
             observed_at=datetime.now(UTC),
             symbol=self.symbol,
