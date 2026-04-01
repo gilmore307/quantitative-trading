@@ -13,12 +13,23 @@ This flow step covers how the live system consumes promoted strategy / parameter
 
 ## Current contents
 
-- `src/runtime/strategy_pointer.py`
-- `src/runners/promote_strategy.py`
-- `src/runners/process_strategy_upgrade_request.py`
-- `src/runners/strategy_upgrade_event.py`
-- `src/runners/review_event.py`
-- `src/runners/calibrate_event.py`
+### pointer
+- `pointer/strategy_pointer.py`
+
+### promotion
+- `promotion/promote_strategy.py`
+
+### upgrade
+- `upgrade/process_strategy_upgrade_request.py`
+- `upgrade/strategy_upgrade_event.py`
+
+### legacy-substeps
+- `legacy-substeps/review_event.py`
+- `legacy-substeps/calibrate_event.py`
+
+## Notes on current cleanup
+
+This flow step has already been cleaned to remove old `crypto-trading` runtime log paths from the migrated pointer/request scripts.
 
 ## Likely next additions
 

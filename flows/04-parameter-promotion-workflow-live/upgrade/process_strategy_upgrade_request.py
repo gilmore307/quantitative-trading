@@ -7,7 +7,7 @@ from src.config.settings import Settings
 from src.state.store import LiveStateStore
 from src.runtime.workflows import OkxWorkflowHooks, run_strategy_upgrade_event
 
-OUT_DIR = Path('/root/.openclaw/workspace/projects/crypto-trading/logs/runtime')
+OUT_DIR = Path('/root/.openclaw/workspace/projects/quantitative-trading/logs/runtime')
 UPGRADE_REQUEST_PATH = OUT_DIR / 'latest-strategy-upgrade-request.json'
 PROCESSED_PATH = OUT_DIR / 'latest-strategy-upgrade-result.json'
 HANDOVER_MARKER_PATH = OUT_DIR / 'latest-strategy-handover-marker.json'
