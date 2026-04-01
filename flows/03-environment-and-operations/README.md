@@ -16,14 +16,21 @@ This flow step covers how the live runtime is started, operated, and kept safe.
 - `systemd/quantitative-trading.service`
 
 ### Runtime helper scripts
-- `scripts/runtime/execution_cycle.py`
-- `scripts/runtime/regime_snapshot.py`
-- `scripts/runtime/shock_snapshot.py`
-- `scripts/runtime/trade_alert_scan.py`
+#### entrypoints
+- `scripts/entrypoints/execution_cycle.py`
+- `scripts/entrypoints/regime_snapshot.py`
+
+#### monitors
+- `scripts/monitors/shock_snapshot.py`
+- `scripts/monitors/trade_alert_scan.py`
+
+## Notes on current cleanup
+
+This flow step has already been cleaned to remove old `crypto-trading` working-directory paths from the migrated daemon/service wrappers.
 
 ## Likely future additions
 
-- any additional service/unit files used by the live runtime
+- additional service/unit files used by the live runtime
 - operation-specific helper scripts tied to runtime startup and service management
 - migration of more runtime-side shell helpers if they remain part of the live system
 
