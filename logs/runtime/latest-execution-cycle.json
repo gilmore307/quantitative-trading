@@ -1,10 +1,10 @@
 {
   "regime_output": {
-    "observed_at": "2026-04-01T17:31:21.721108+00:00",
+    "observed_at": "2026-04-01T17:35:52.752604+00:00",
     "symbol": "BTC-USDT-SWAP",
     "background_4h": {
       "primary": "chaotic",
-      "confidence": 0.6426049556897778,
+      "confidence": 0.6329430832032337,
       "reasons": [
         "top_scores_too_close"
       ],
@@ -13,49 +13,49 @@
         "compression"
       ],
       "scores": {
-        "trend": 0.6426049556897778,
+        "trend": 0.6329430832032337,
         "range": 0.35,
-        "compression": 0.5900402000791477,
-        "crowded": 0.23753415327194183,
-        "shock": 0.016770181785782882
+        "compression": 0.5866689805354168,
+        "crowded": 0.22308496344970752,
+        "shock": 0.011280481509337428
       },
       "tradable": false
     },
     "primary_15m": {
       "primary": "compression",
-      "confidence": 0.5793479405695057,
+      "confidence": 0.5744959571059634,
       "reasons": [
         "low_bandwidth"
       ],
       "secondary": [
-        "trend",
-        "range"
+        "range",
+        "trend"
       ],
       "scores": {
-        "trend": 0.35,
-        "range": 0.0,
-        "compression": 0.5793479405695057,
-        "crowded": 0.19007513333982667,
-        "shock": 0.0
+        "trend": 0.23326975120005156,
+        "range": 0.35,
+        "compression": 0.5744959571059634,
+        "crowded": 0.2140082195813884,
+        "shock": 0.005091792508210755
       },
       "tradable": true
     },
     "override_1m": null,
     "background_features": {
-      "ts": "2026-04-01T17:31:20.845699+00:00",
+      "ts": "2026-04-01T17:35:51.857095+00:00",
       "symbol": "BTC-USDT-SWAP",
       "layer": "background_4h",
       "source_timeframe": "4h",
-      "last_price": 68419.8,
-      "adx": 22.81291545055885,
-      "ema20_slope": 284.978179045429,
-      "ema50_slope": 62.391226688210736,
-      "bollinger_bandwidth_pct": 0.04926963425405519,
-      "realized_vol_pct": 0.2892857142857143,
-      "vwap_deviation_z": 1.1689439992872235,
+      "last_price": 68310.0,
+      "adx": 22.812915450558847,
+      "ema20_slope": 274.2638933311391,
+      "ema50_slope": 57.97946198233694,
+      "bollinger_bandwidth_pct": 0.04890383635726188,
+      "realized_vol_pct": 0.30357142857142855,
+      "vwap_deviation_z": 1.0481705932054235,
       "funding_pctile": 0.09836065573770492,
-      "oi_accel": -0.24128665121444082,
-      "basis_deviation_pct": -0.0010718305389026545,
+      "oi_accel": -0.23651687813157649,
+      "basis_deviation_pct": -0.00011218612638550787,
       "liquidation_spike_score": 0.0,
       "orderbook_imbalance": null,
       "trade_burst_score": 0.0,
@@ -71,20 +71,20 @@
       }
     },
     "primary_features": {
-      "ts": "2026-04-01T17:31:20.845699+00:00",
+      "ts": "2026-04-01T17:35:51.857095+00:00",
       "symbol": "BTC-USDT-SWAP",
       "layer": "primary_15m",
       "source_timeframe": "15m",
-      "last_price": 68419.8,
-      "adx": 40.455365819796945,
-      "ema20_slope": -6.8131028506177245,
-      "ema50_slope": 13.814077475923114,
-      "bollinger_bandwidth_pct": 0.013260823772197729,
-      "realized_vol_pct": 0.625,
-      "vwap_deviation_z": -0.45705870030549656,
+      "last_price": 68310.0,
+      "adx": 25.786398110157744,
+      "ema20_slope": -17.527388564907596,
+      "ema50_slope": 9.402312770034769,
+      "bollinger_bandwidth_pct": 0.013487331443328988,
+      "realized_vol_pct": 0.6392857142857142,
+      "vwap_deviation_z": -0.9120194351806367,
       "funding_pctile": 0.09836065573770492,
-      "oi_accel": -0.24128665121444082,
-      "basis_deviation_pct": -0.0010718305389026545,
+      "oi_accel": -0.23651687813157649,
+      "basis_deviation_pct": -0.00011218612638550787,
       "liquidation_spike_score": 0.0,
       "orderbook_imbalance": null,
       "trade_burst_score": 0.0,
@@ -100,20 +100,20 @@
       }
     },
     "override_features": {
-      "ts": "2026-04-01T17:31:20.845699+00:00",
+      "ts": "2026-04-01T17:35:51.857095+00:00",
       "symbol": "BTC-USDT-SWAP",
       "layer": "event_1m",
       "source_timeframe": "1m",
-      "last_price": 68419.8,
-      "adx": 40.455365819796945,
-      "ema20_slope": -6.8131028506177245,
-      "ema50_slope": 13.814077475923114,
-      "bollinger_bandwidth_pct": 0.013260823772197729,
-      "realized_vol_pct": 0.007142857142857143,
-      "vwap_deviation_z": -0.45705870030549656,
+      "last_price": 68310.0,
+      "adx": 25.786398110157744,
+      "ema20_slope": -17.527388564907596,
+      "ema50_slope": 9.402312770034769,
+      "bollinger_bandwidth_pct": 0.013487331443328988,
+      "realized_vol_pct": 0.07142857142857142,
+      "vwap_deviation_z": -0.9120194351806367,
       "funding_pctile": 0.09836065573770492,
-      "oi_accel": -0.24128665121444082,
-      "basis_deviation_pct": -0.0010718305389026545,
+      "oi_accel": -0.23651687813157649,
+      "basis_deviation_pct": -0.00011218612638550787,
       "liquidation_spike_score": 0.0,
       "orderbook_imbalance": null,
       "trade_burst_score": 0.0,
@@ -130,20 +130,20 @@
     },
     "final_decision": {
       "primary": "compression",
-      "confidence": 0.5793479405695057,
+      "confidence": 0.5744959571059634,
       "reasons": [
         "low_bandwidth"
       ],
       "secondary": [
-        "trend",
-        "range"
+        "range",
+        "trend"
       ],
       "scores": {
-        "trend": 0.35,
-        "range": 0.0,
-        "compression": 0.5793479405695057,
-        "crowded": 0.19007513333982667,
-        "shock": 0.0
+        "trend": 0.23326975120005156,
+        "range": 0.35,
+        "compression": 0.5744959571059634,
+        "crowded": 0.2140082195813884,
+        "shock": 0.005091792508210755
       },
       "tradable": true
     },
@@ -157,7 +157,7 @@
     },
     "decision_summary": {
       "regime": "compression",
-      "confidence": 0.5793479405695057,
+      "confidence": 0.5744959571059634,
       "tradable": true,
       "account": "compression",
       "strategy_family": "compression",
@@ -168,8 +168,8 @@
         "low_bandwidth"
       ],
       "secondary": [
-        "trend",
-        "range"
+        "range",
+        "trend"
       ],
       "diagnostics": [
         "moderate_confidence",
@@ -185,19 +185,19 @@
     "side": null,
     "size": null,
     "reason": "compression_wait_or_probe",
-    "score": 0.0,
+    "score": 1.0,
     "blockers": [
       "realized_vol_not_compressed"
     ],
     "signals": {
-      "bw": 0.013260823772197729,
-      "rv": 0.625,
-      "z15": -0.45705870030549656,
-      "z1": -0.45705870030549656,
+      "bw": 0.013487331443328988,
+      "rv": 0.6392857142857142,
+      "z15": -0.9120194351806367,
+      "z1": -0.9120194351806367,
       "trade_burst": 0.0,
-      "basis": -0.0010718305389026545,
-      "oi_accel": -0.24128665121444082,
-      "bg_slope": 284.978179045429,
+      "basis": -0.00011218612638550787,
+      "oi_accel": -0.23651687813157649,
+      "bg_slope": 274.2638933311391,
       "compression_regime": false,
       "structure_block": false
     },
@@ -205,7 +205,7 @@
       "bandwidth_compression_confirmation": 1.0,
       "realized_vol_compression_confirmation": 0.0,
       "override_dislocation_confirmation": 0.0,
-      "primary_dislocation_confirmation": 0.0,
+      "primary_dislocation_confirmation": 1.0,
       "trade_burst_confirmation": 0.0,
       "structure_block_penalty": 0.0
     }
@@ -233,18 +233,18 @@
   },
   "runtime_state": {
     "mode": "trade",
-    "updated_at": "2026-04-01T17:31:10.155367+00:00",
+    "updated_at": "2026-04-01T17:35:40.579047+00:00",
     "reason": "daemon_start_trade_mode"
   },
   "active_strategy": {
     "version": "legacy-default",
-    "updated_at": "2026-04-01T17:31:08.992512+00:00",
+    "updated_at": "2026-04-01T17:35:39.368785+00:00",
     "source": "implicit_runtime_default",
     "metadata": {
       "note": "active strategy pointer not initialized; using legacy runtime default",
       "family": "default",
       "config_path": "",
-      "promoted_at": "2026-04-01T17:31:08.992528+00:00",
+      "promoted_at": "2026-04-01T17:35:39.368800+00:00",
       "promotion_note": "bootstrap default pointer"
     }
   },
@@ -849,102 +849,56 @@
       }
     }
   ],
-  "router_composite": {
-    "account": "router_composite",
-    "symbol": "BTC-USDT-SWAP",
-    "selected_strategy": "compression",
-    "source_regime": "compression",
-    "source_confidence": 0.5793479405695057,
-    "switch_action": "adopt_target_plan",
-    "position_owner": null,
-    "plan": {
-      "regime": "compression",
-      "account": "router_composite",
-      "action": "watch",
-      "side": null,
-      "size": null,
-      "reason": "compression_wait_or_probe",
-      "score": 0.0,
-      "blockers": [
-        "realized_vol_not_compressed"
-      ],
-      "signals": {
-        "bw": 0.013260823772197729,
-        "rv": 0.625,
-        "z15": -0.45705870030549656,
-        "z1": -0.45705870030549656,
-        "trade_burst": 0.0,
-        "basis": -0.0010718305389026545,
-        "oi_accel": -0.24128665121444082,
-        "bg_slope": 284.978179045429,
-        "compression_regime": false,
-        "structure_block": false
-      },
-      "subscores": {
-        "bandwidth_compression_confirmation": 1.0,
-        "realized_vol_compression_confirmation": 0.0,
-        "override_dislocation_confirmation": 0.0,
-        "primary_dislocation_confirmation": 0.0,
-        "trade_burst_confirmation": 0.0,
-        "structure_block_penalty": 0.0
-      }
-    },
-    "notes": [
-      "selected_strategy:compression",
-      "no_existing_position"
-    ],
-    "position": null
-  },
   "artifact_type": "execution_cycle",
-  "recorded_at": "2026-04-01T17:31:23.238498+00:00",
+  "recorded_at": "2026-04-01T17:35:54.184860+00:00",
   "feature_snapshot": {
     "background_4h": {
       "regime": "chaotic",
-      "confidence": 0.6426049556897778,
+      "confidence": 0.6329430832032337,
       "scores": {
-        "trend": 0.6426049556897778,
+        "trend": 0.6329430832032337,
         "range": 0.35,
-        "compression": 0.5900402000791477,
-        "crowded": 0.23753415327194183,
-        "shock": 0.016770181785782882
+        "compression": 0.5866689805354168,
+        "crowded": 0.22308496344970752,
+        "shock": 0.011280481509337428
       },
       "tradable": false,
-      "adx": 22.81291545055885,
-      "last_price": 68419.8,
-      "ema20_slope": 284.978179045429,
-      "ema50_slope": 62.391226688210736
+      "adx": 22.812915450558847,
+      "last_price": 68310.0,
+      "ema20_slope": 274.2638933311391,
+      "ema50_slope": 57.97946198233694
     },
     "primary_15m": {
       "regime": "compression",
-      "confidence": 0.5793479405695057,
+      "confidence": 0.5744959571059634,
       "scores": {
-        "trend": 0.35,
-        "range": 0.0,
-        "compression": 0.5793479405695057,
-        "crowded": 0.19007513333982667,
-        "shock": 0.0
+        "trend": 0.23326975120005156,
+        "range": 0.35,
+        "compression": 0.5744959571059634,
+        "crowded": 0.2140082195813884,
+        "shock": 0.005091792508210755
       },
       "tradable": true,
-      "adx": 40.455365819796945,
-      "last_price": 68419.8,
-      "vwap_deviation_z": -0.45705870030549656,
-      "bollinger_bandwidth_pct": 0.013260823772197729,
-      "realized_vol_pct": 0.625,
+      "adx": 25.786398110157744,
+      "last_price": 68310.0,
+      "vwap_deviation_z": -0.9120194351806367,
+      "bollinger_bandwidth_pct": 0.013487331443328988,
+      "realized_vol_pct": 0.6392857142857142,
       "funding_pctile": 0.09836065573770492,
-      "oi_accel": -0.24128665121444082,
-      "basis_deviation_pct": -0.0010718305389026545
+      "oi_accel": -0.23651687813157649,
+      "basis_deviation_pct": -0.00011218612638550787
     },
     "override_1m": {
       "regime": null,
       "confidence": null,
       "scores": null,
       "tradable": null,
-      "last_price": 68419.8,
-      "vwap_deviation_z": -0.45705870030549656,
+      "last_price": 68310.0,
+      "vwap_deviation_z": -0.9120194351806367,
       "trade_burst_score": 0.0,
       "liquidation_spike_score": 0.0,
       "orderbook_imbalance": null,
-      "realized_vol_pct": 0.007142857142857143
+      "realized_vol_pct": 0.07142857142857142
     }
   },
   "verification_snapshot": {
@@ -987,14 +941,14 @@
     "position_ledger_diff": 0.0,
     "runtime_mode": "trade",
     "active_strategy_version": "legacy-default",
-    "active_strategy_updated_at": "2026-04-01T17:31:08.992512+00:00",
+    "active_strategy_updated_at": "2026-04-01T17:35:39.368785+00:00",
     "active_strategy_source": "implicit_runtime_default",
     "active_strategy_family": "default",
     "active_strategy_config_path": "",
-    "active_strategy_promoted_at": "2026-04-01T17:31:08.992528+00:00",
+    "active_strategy_promoted_at": "2026-04-01T17:35:39.368800+00:00",
     "active_strategy_promotion_note": "bootstrap default pointer",
     "regime": "compression",
-    "confidence": 0.5793479405695057,
+    "confidence": 0.5744959571059634,
     "plan_action": "watch",
     "plan_account": "compression",
     "plan_reason": "compression_wait_or_probe",

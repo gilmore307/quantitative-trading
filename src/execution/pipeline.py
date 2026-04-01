@@ -7,7 +7,6 @@ from src.execution.adapters import DryRunExecutionAdapter, ExecutionAdapter, Exe
 from src.execution.controller import RouteController, RouteControlResult
 from src.execution.exchange_snapshot import ExchangeSnapshotProvider
 from src.reconcile.alignment import ExchangePositionSnapshot
-from src.routing.composite import RouterCompositeSimulator
 from src.runtime.regime_runner import BtcRegimeRunner, RegimeRunnerOutput
 from src.runtime.mode_policy import policy_for_mode
 from src.upgrade.strategy_pointer import ActiveStrategySnapshot, load_active_strategy_snapshot
@@ -44,7 +43,6 @@ class ExecutionCycleResult:
     active_strategy: dict
     route_state: dict | None
     live_positions: list[dict]
-    router_composite: dict
 
 
 @dataclass(slots=True)
@@ -55,7 +53,6 @@ class ActiveStrategyExecutionResult:
     runtime_state: dict
     active_strategy: dict
     live_positions: list[dict]
-    router_composite: dict
 
 
 class ExecutionPipeline:
@@ -70,14 +67,13 @@ class ExecutionPipeline:
     This intentionally stops short of real order placement.
     """
 
-    def __init__(self, regime_runner: BtcRegimeRunner | None = None, controller: RouteController | None = None, snapshot_provider: ExchangeSnapshotProvider | None = None, adapter: ExecutionAdapter | None = None, settings: Settings | None = None, runtime_store: RuntimeStore | None = None, composite_simulator: RouterCompositeSimulator | None = None):
+    def __init__(self, regime_runner: BtcRegimeRunner | None = None, controller: RouteController | None = None, snapshot_provider: ExchangeSnapshotProvider | None = None, adapter: ExecutionAdapter | None = None, settings: Settings | None = None, runtime_store: RuntimeStore | None = None):
         self.settings = settings or Settings.load()
         self.regime_runner = regime_runner or BtcRegimeRunner(self.settings)
         self.controller = controller or RouteController(verification_cycle_timeout=self.settings.verification_cycle_timeout)
         self.snapshot_provider = snapshot_provider or ExchangeSnapshotProvider(self.settings)
         self.adapter = adapter or DryRunExecutionAdapter()
         self.runtime_store = runtime_store or RuntimeStore()
-        self.composite_simulator = composite_simulator or RouterCompositeSimulator(self.controller.store)
 
     def _active_strategy_snapshot(self) -> ActiveStrategySnapshot:
         return load_active_strategy_snapshot()
@@ -168,10 +164,12 @@ class ExecutionPipeline:
         local_position = None
         verification_position = None
         reconcile_result = None
+
         def refresh_snapshot() -> ExchangePositionSnapshot | None:
             if plan.account is None:
                 return exchange_snapshot
             return self.snapshot_provider.fetch_position(plan.account, regime_output.symbol)
+
         if plan.account is not None and not pending_verification_priority and plan.action == 'enter' and plan.side is not None and plan.size is not None:
             trace.submission_attempted = True
             receipt = self.adapter.submit_entry(account=plan.account, symbol=regime_output.symbol, side=plan.side, size=plan.size, reason=plan.reason or 'entry')
@@ -246,7 +244,19 @@ class ExecutionPipeline:
             if reconcile_result.policy.action not in trace.diagnostics:
                 trace.diagnostics.append(reconcile_result.policy.action)
         route_state = None if plan.account is None else asdict(self.controller.routes.get(plan.account, regime_output.symbol))
-        return ExecutionCycleResult(regime_output=regime_output, plan=plan, receipt=receipt, local_position=local_position, verification_position=verification_position, reconcile_result=reconcile_result, decision_trace=trace, runtime_state=asdict(self.runtime_store.get()), active_strategy=asdict(self._active_strategy_snapshot()), route_state=route_state, live_positions=[asdict(position) for position in self.controller.store.list_positions()], router_composite=self.composite_simulator.snapshot(regime_output))
+        return ExecutionCycleResult(
+            regime_output=regime_output,
+            plan=plan,
+            receipt=receipt,
+            local_position=local_position,
+            verification_position=verification_position,
+            reconcile_result=reconcile_result,
+            decision_trace=trace,
+            runtime_state=asdict(self.runtime_store.get()),
+            active_strategy=asdict(self._active_strategy_snapshot()),
+            route_state=route_state,
+            live_positions=[asdict(position) for position in self.controller.store.list_positions()],
+        )
 
     def run_cycle(self, exchange_snapshot: ExchangePositionSnapshot | None = None) -> ExecutionCycleResult:
         mode = self.runtime_store.get().mode
@@ -308,5 +318,4 @@ class ExecutionPipeline:
             runtime_state=asdict(self.runtime_store.get()),
             active_strategy=asdict(active_snapshot),
             live_positions=[asdict(position) for position in self.controller.store.list_positions()],
-            router_composite=self.composite_simulator.snapshot(regime_output),
         )
