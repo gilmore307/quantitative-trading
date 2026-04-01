@@ -3,8 +3,8 @@
 This is the beginning of the final source layout for `quantitative-trading`.
 
 Current status:
-- `flows/` remains the migration workspace and process-oriented reorganization layer
-- `src/` is where stabilized realtime code starts being promoted into its long-term package layout
+- `src/` is the authoritative live codebase for `quantitative-trading`
+- the old `flows/` migration workspace has been retired to avoid split-brain maintenance and confusion
 
 ## Current package skeleton
 
@@ -51,14 +51,12 @@ Live runtime operational helpers:
 - alert watchers
 - notifications
 
-## Migration rule
+## Authority rule
 
-Code should only be promoted from `flows/` into `src/` after:
-- its role is clear under the current design philosophy
-- its place in the live runtime flow is stable enough
-- we are comfortable treating it as part of the final package structure
+`src/` is the only authoritative runtime code path for this repository.
+Do not maintain duplicate runtime logic under parallel directory trees.
 
 ## Validation rule
 
 Before deleting old or duplicated scripts/modules, run the planned end-to-end dummy-strategy test path.
-That pass will help reveal which files still matter and which can be removed safely.
+That pass was used to confirm the surviving live path before retiring the old `flows/` tree.

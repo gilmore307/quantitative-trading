@@ -25,8 +25,8 @@
    - out-of-band request consumer (`src.upgrade.process_strategy_upgrade_request`) now also runs successfully and writes:
      - `logs/runtime/latest-strategy-upgrade-result.json`
      - `logs/runtime/latest-strategy-handover-marker.json`
-   - remaining cleanup: bucket/account reset logic inside upgrade workflow still reflects old multi-account family assumptions
-7. only after the dummy path is proven, continue deleting stale review/compare/shadow-plan compatibility code
+7. continue deleting stale review/compare/shadow-plan compatibility code and family-account config residue from `src/`
+8. keep `src/` as the only authoritative code tree; do not reintroduce a parallel migration code tree
 
 ## Known blockers
 - repo currently has no `pyproject.toml` / `requirements.txt`, so even basic execution currently fails on missing deps such as `python-dotenv`

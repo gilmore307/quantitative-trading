@@ -15,3 +15,8 @@ Historical data ingestion, research, model building, and backtests are being ret
 
 Start here:
 - `docs/README.md`
+- `src/README.md`
+
+Repository structure note:
+- `src/` is the authoritative live/runtime code
+- the older `flows/` migration workspace has been retired to avoid duplicate logic and maintenance confusion
