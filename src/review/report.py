@@ -10,7 +10,6 @@ import json
 from src.review.aggregator import aggregate_from_execution_history
 from src.review.framework import ReviewWindow, build_review_plan
 from src.review.performance import build_performance_snapshot
-from src.routing.router import REGIME_ACCOUNT_MAP
 
 
 def _row_pnl(row: dict[str, Any]) -> float:
@@ -241,7 +240,7 @@ def _build_overlap_summary(history_rows: list[dict[str, Any]]) -> dict[str, Any]
 
 
 def _build_mapping_validity_summary(history_rows: list[dict[str, Any]]) -> dict[str, Any]:
-    expected_map = {str(regime.value): account for regime, account in REGIME_ACCOUNT_MAP.items()}
+    expected_map = {}
     buckets: dict[str, dict[str, Any]] = {}
     for row in history_rows:
         summary = row.get('summary') if isinstance(row.get('summary'), dict) else row

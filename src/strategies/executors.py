@@ -368,6 +368,12 @@ EXECUTORS = {
     'compression': CompressionExecutor(),
     'crowded': CrowdedExecutor(),
     'shock': ShockExecutor(),
+    'default': HoldExecutor(),
+    'active_live': HoldExecutor(),
+    'dummy': HoldExecutor(),
+    'dummy-v1': HoldExecutor(),
+    'dummy-v2': HoldExecutor(),
+    'runtime-default': HoldExecutor(),
 }
 
 
@@ -390,7 +396,4 @@ def executor_for(output: RegimeRunnerOutput, strategy_label: str | None = None) 
     if output.route_decision.get('account') is None:
         return HoldExecutor()
     label = str(strategy_label or '').strip().lower()
-    if label in EXECUTORS:
-        return EXECUTORS[label]
-    regime = output.final_decision['primary']
-    return EXECUTORS.get(regime, HoldExecutor())
+    return EXECUTORS.get(label, HoldExecutor())

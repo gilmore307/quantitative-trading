@@ -79,7 +79,7 @@ class ExecutionPipeline:
         return load_active_strategy_snapshot()
 
     def build_plan(self, output: RegimeRunnerOutput, active_strategy: ActiveStrategySnapshot | None = None) -> ExecutionPlan:
-        strategy_label = None if active_strategy is None else str((active_strategy.metadata or {}).get('family') or active_strategy.version or '').lower()
+        strategy_label = None if active_strategy is None else str(active_strategy.version or (active_strategy.metadata or {}).get('family') or 'runtime-default').lower()
         return executor_for(output, strategy_label=strategy_label).build_plan(output)
 
     def _initial_trace(self, mode, mode_policy, regime_output: RegimeRunnerOutput) -> ExecutionDecisionTrace:
@@ -289,7 +289,7 @@ class ExecutionPipeline:
             self.adapter = DryRunExecutionAdapter()
 
         active_snapshot = self._active_strategy_snapshot()
-        active_family = str((active_snapshot.metadata or {}).get('family') or regime_output.final_decision.get('primary') or 'default')
+        active_family = str(active_snapshot.version or (active_snapshot.metadata or {}).get('family') or 'active_live')
         if not mode_policy.allow_strategy_execution or not mode_policy.allow_normal_routing:
             trace = self._initial_trace(mode, mode_policy, regime_output)
             trace.block_reason = f'mode_no_strategy:{mode.value}' if not mode_policy.allow_strategy_execution else f'mode_blocked:{mode.value}'
