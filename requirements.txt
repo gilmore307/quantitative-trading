@@ -1,0 +1,6 @@
+pydantic>=2,<3
+python-dotenv>=1,<2
+requests>=2,<3
+websocket-client>=1,<2
+websockets>=12,<16
+ccxt>=4,<5
