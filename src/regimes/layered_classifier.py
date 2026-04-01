@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import Any
 
 from src.features.engine import FeatureEngine
 from src.features.models import FeatureSnapshot
@@ -21,18 +22,26 @@ class LayeredRegimeDecision:
 
 
 class LayeredRegimeClassifier:
-    """Three-layer regime classifier.
+    """Three-layer label calculator driven by external parameters.
 
-    1. 4h background layer
-    2. 15m primary layer
-    3. 1m shock override layer
+    Runtime still calculates labels locally, but the calculation thresholds and
+    overrides should come from external model inputs rather than being locked to
+    static runtime constants.
     """
 
-    def __init__(self):
+    def __init__(self, parameters: dict[str, Any] | None = None):
+        self.parameters = parameters or {}
         self.background_engine = FeatureEngine(trend_timeframe='4h', range_timeframe='4h', event_timeframe='1m', layer_name='background_4h')
         self.primary_engine = FeatureEngine(trend_timeframe='15m', range_timeframe='15m', event_timeframe='1m', layer_name='primary_15m')
         self.override_engine = FeatureEngine(trend_timeframe='15m', range_timeframe='15m', event_timeframe='1m', layer_name='event_1m')
-        self.classifier = RuleBasedRegimeClassifier()
+        self.classifier = RuleBasedRegimeClassifier(parameters=self.parameters)
+
+    def _value(self, key: str, default: float) -> float:
+        value = self.parameters.get(key, default)
+        try:
+            return float(value)
+        except (TypeError, ValueError):
+            return float(default)
 
     def classify(self, snapshot: MarketSnapshot) -> LayeredRegimeDecision:
         bg_features = self.background_engine.build(snapshot)
@@ -43,7 +52,8 @@ class LayeredRegimeClassifier:
         primary = self.classifier.classify(primary_features)
         override_candidate = self.classifier.classify(override_features)
 
-        override = override_candidate if override_candidate.primary == Regime.SHOCK else None
+        shock_label = str(self.parameters.get('override_shock_label', Regime.SHOCK.value))
+        override = override_candidate if override_candidate.primary.value == shock_label else None
         final = primary
 
         if override is not None:
@@ -53,7 +63,7 @@ class LayeredRegimeClassifier:
                 reasons=['1m_event_override', *override.reasons],
                 secondary=[primary.primary, *override.secondary],
             )
-        elif background.primary == Regime.TREND and primary.primary == Regime.RANGE and background.confidence >= 0.65:
+        elif background.primary == Regime.TREND and primary.primary == Regime.RANGE and background.confidence >= self._value('background_override_min_confidence', 0.65):
             final = RegimeDecision(
                 primary=Regime.TREND,
                 confidence=min(0.95, max(primary.confidence, background.confidence)),

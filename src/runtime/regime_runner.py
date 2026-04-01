@@ -11,6 +11,8 @@ from src.market.hub import MarketDataHub
 from src.market.ingestion import BtcPollingIngestor
 from src.market.okx_ws import OkxPublicWsClient
 from src.regimes.layered_classifier import LayeredRegimeClassifier
+from src.runtime.model_inputs import load_model_inputs
+from src.upgrade.strategy_pointer import load_active_strategy_snapshot
 
 
 OUT_DIR = Path('/root/.openclaw/workspace/projects/quantitative-trading/logs/runtime')
@@ -41,7 +43,10 @@ class BtcRegimeRunner:
         self.hub = MarketDataHub()
         self.ingestor = BtcPollingIngestor(self.settings, self.hub, symbol=symbol)
         self.ws = OkxPublicWsClient(self.hub, symbol=symbol)
-        self.layered = LayeredRegimeClassifier()
+        active = load_active_strategy_snapshot()
+        model_inputs = load_model_inputs(active)
+        label_parameters = model_inputs.get('label_parameters') if isinstance(model_inputs, dict) else {}
+        self.layered = LayeredRegimeClassifier(parameters=label_parameters if isinstance(label_parameters, dict) else {})
 
     def _decision_dict(self, decision):
         if decision is None:
@@ -89,8 +94,8 @@ class BtcRegimeRunner:
             primary_features=asdict(layered.primary_features),
             override_features=asdict(layered.override_features),
             final_decision=self._decision_dict(layered.final),
-            route_decision=asdict(route),
-            decision_summary=asdict(summary),
+            route_decision=route,
+            decision_summary=summary,
             settings=self.settings,
         )
         LATEST_PATH.write_text(json.dumps(asdict(payload), indent=2, default=str, ensure_ascii=False))
@@ -118,12 +123,13 @@ class BtcRegimeRunner:
 
 async def amain() -> None:
     runner = BtcRegimeRunner()
-    payload = await runner.run_with_shock_window(seconds=10)
-    print(json.dumps(asdict(payload), indent=2, default=str, ensure_ascii=False))
+    output = await runner.run_with_shock_window(10)
+    print(json.dumps(asdict(output), indent=2, default=str, ensure_ascii=False))
 
 
 def main() -> None:
-    asyncio.run(amain())
+    output = BtcRegimeRunner().run_once()
+    print(json.dumps(asdict(output), indent=2, default=str, ensure_ascii=False))
 
 
 if __name__ == '__main__':
