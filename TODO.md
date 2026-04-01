@@ -16,7 +16,12 @@
    - `logs/runtime/execution-cycles/*.jsonl`
    - `logs/runtime/trade-daemon-*.jsonl`
 5. validate `theoretical_snapshot` / execution-drag fields on a cycle that actually contains fill/fee/pnl data
-6. only after the dummy path is proven, continue deleting stale review/compare/shadow-plan compatibility code
+   - dummy live-cycle mode now exists:
+     - `dummy-v1` => enter, hold ~5s, exit, hold ~5s, repeat
+     - `dummy-v2` => enter, hold ~3s, exit, hold ~3s, repeat
+   - invocation: `.venv/bin/python -m src.runtime.trade_daemon --dummy-live-cycle --interval-seconds 1 --max-cycles N`
+6. next: expose/record upgrade-event behavior while switching from dummy-v1 to dummy-v2 mid-run
+7. only after the dummy path is proven, continue deleting stale review/compare/shadow-plan compatibility code
 
 ## Known blockers
 - repo currently has no `pyproject.toml` / `requirements.txt`, so even basic execution currently fails on missing deps such as `python-dotenv`

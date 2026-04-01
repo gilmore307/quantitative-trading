@@ -19,6 +19,7 @@ from src.runtime.mode import RuntimeMode
 from src.runtime.store import RuntimeStore
 from src.upgrade.strategy_pointer import load_active_strategy_snapshot
 from src.runtime.workflows import OkxWorkflowHooks, WorkflowHooks, WorkflowRunResult
+from src.runtime.dummy_cycle import run_dummy_cycle
 
 OUT_DIR = RUNTIME_DIR
 DAEMON_LOG = lambda: dated_jsonl_path('trade-daemon')
@@ -46,6 +47,7 @@ def build_arg_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description='Run continuous trade daemon for crypto-trading demo execution.')
     parser.add_argument('--interval-seconds', type=float, default=60.0, help='Seconds between execution cycles.')
     parser.add_argument('--max-cycles', type=int, default=0, help='Optional max cycles for bounded runs. 0 means run forever.')
+    parser.add_argument('--dummy-live-cycle', action='store_true', help='Run deterministic dummy enter/exit cycles based on promoted strategy version metadata.')
     return parser
 
 
@@ -110,6 +112,7 @@ def main() -> None:
         'observed_at': datetime.now(UTC),
         'interval_seconds': args.interval_seconds,
         'dry_run': settings.dry_run,
+        'dummy_live_cycle': args.dummy_live_cycle,
         'mode': runtime_store.get().mode.value,
         'startup_workflow': None if startup_workflow is None else {
             'workflow': startup_workflow.workflow,
@@ -151,7 +154,7 @@ def main() -> None:
                 _log_event(request_event)
                 _store_upgrade_request(request_event)
                 previous_strategy_version = active_strategy.version
-            result = pipeline.run_cycle_active_strategy()
+            result = run_dummy_cycle(runtime_store=runtime_store, active=active_strategy) if args.dummy_live_cycle else pipeline.run_cycle_active_strategy()
             artifact = persist_active_strategy_execution_artifact(result)
             summary = artifact.get('summary', {}) if isinstance(artifact, dict) else {}
             primary = artifact.get('result', {}) if isinstance(artifact, dict) else {}
@@ -173,6 +176,7 @@ def main() -> None:
                 'submission_attempted': primary_summary.get('submission_attempted'),
                 'block_reason': primary_summary.get('block_reason'),
                 'allow_reason': primary_summary.get('allow_reason'),
+                'execution_drag_proxy_usdt': primary_summary.get('execution_drag_proxy_usdt'),
             }
             _log_event(cycle_event)
 

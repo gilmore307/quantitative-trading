@@ -112,6 +112,26 @@ Only candidates — not auto-delete yet.
 - compatibility wrappers that duplicate the final unified upgrade path
 - old flow copies once the final `src/` package path is proven stable
 
+## Current dummy live-cycle implementation
+
+A deterministic dummy mode now exists in `src/runtime/dummy_cycle.py` and is wired into `src/runtime/trade_daemon.py` via `--dummy-live-cycle`.
+
+Behavior:
+- `dummy-v1` (or versions without the upgraded marker) uses a 5-second cadence
+  - buy/enter
+  - hold about 5 seconds
+  - sell/exit
+  - hold about 5 seconds
+  - repeat
+- `dummy-v2` / upgraded versions use a 3-second cadence
+  - buy/enter
+  - hold about 3 seconds
+  - sell/exit
+  - hold about 3 seconds
+  - repeat
+
+This mode also injects dummy fee/pnl/funding fields so `theoretical_snapshot`, `execution_drag_proxy_usdt`, and review-side execution deviation reporting have non-placeholder data to consume during dummy trading cycles.
+
 ## Current success criteria
 
 A successful dummy strategy validation should prove:
