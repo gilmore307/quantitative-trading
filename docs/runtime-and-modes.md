@@ -69,6 +69,26 @@ If an upgrade happens while a position is open:
 - **review** = upgrade validation / execution diagnosis sub-step
 - **calibrate** = helper / baseline-refresh sub-step
 
+## Main code / script touchpoints
+
+### Long-running runtime state
+- `src/runners/trade_daemon.py`
+- `src/runtime/mode.py`
+- `src/runtime/mode_policy.py`
+- `src/runtime/workflow.py`
+- `src/runtime/workflows.py`
+
+### Active strategy hot-swap / pointer
+- `src/runtime/strategy_pointer.py`
+- `src/runners/promote_strategy.py`
+- `src/runners/process_strategy_upgrade_request.py`
+- `src/runners/strategy_upgrade_event.py`
+
+### Runtime state / execution coupling
+- `src/execution/pipeline.py`
+- `src/state/store.py`
+- `src/state/live_position.py`
+
 ## Rule of thumb
 
 Think of the system as:

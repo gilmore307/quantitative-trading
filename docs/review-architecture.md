@@ -82,3 +82,24 @@ A full upgrade-oriented review should be able to describe:
 - pre/post-upgrade execution observations
 - deviation summary
 - handover decision / marker when relevant
+
+## Main code / script touchpoints
+
+### Artifact production
+- `src/execution/pipeline.py`
+- `src/runners/execution_cycle.py`
+- `src/runtime/strategy_pointer.py`
+- `src/runners/process_strategy_upgrade_request.py`
+
+### Review transformation / export
+- `src/review/ingestion.py`
+- `src/review/aggregator.py`
+- `src/review/performance.py`
+- `src/review/report.py`
+- `src/review/export.py`
+
+### Upgrade event orchestration
+- `src/runtime/workflows.py`
+- `src/runners/strategy_upgrade_event.py`
+- `src/runners/review_event.py`
+- `src/runners/calibrate_event.py`

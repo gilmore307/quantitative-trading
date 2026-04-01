@@ -70,3 +70,24 @@ Artifact compatibility is allowed; operational dependence is not.
 
 Research may consume runtime artifacts.
 Runtime should not need research processes to stay alive.
+
+## Main code / script touchpoints
+
+### Live runtime line
+- `src/runners/trade_daemon.py`
+- `src/execution/pipeline.py`
+- `src/runtime/strategy_pointer.py`
+- `src/state/`
+- `src/reconcile/`
+
+### Upgrade-event / validation bridge
+- `src/runners/process_strategy_upgrade_request.py`
+- `src/runners/strategy_upgrade_event.py`
+- `src/runtime/workflows.py`
+
+### Live-side review outputs
+- `src/review/`
+- `src/runners/review_event.py`
+- `src/runners/weekly_review.py`
+- `src/runners/monthly_review.py`
+- `src/runners/quarterly_review.py`

@@ -60,3 +60,23 @@ The live side should be able to record:
 - hot-swap detection events
 - strategy upgrade request/result artifacts
 - position handover observation / decision / marker when an upgrade happens with open positions
+
+## Main code / script touchpoints
+
+### Active strategy publication / pointer handling
+- `src/runtime/strategy_pointer.py`
+- `src/runners/promote_strategy.py`
+
+### Upgrade detection / request
+- `src/runners/trade_daemon.py`
+- `src/runners/process_strategy_upgrade_request.py`
+
+### Unified upgrade event
+- `src/runtime/workflows.py`
+- `src/runners/strategy_upgrade_event.py`
+- `src/runners/review_event.py`
+- `src/runners/calibrate_event.py`
+
+### Artifact tagging
+- `src/execution/pipeline.py`
+- `src/runners/execution_cycle.py`

@@ -38,6 +38,11 @@ This docs tree is the canonical home for realtime trading / live execution / run
 - `parameter-promotion-workflow-live.md`
 - `research-runtime-separation-live.md`
 
+## Documentation rule for this repo
+
+Each substantive realtime doc should explicitly list the main code / script touchpoints it depends on.
+That mapping is the source of truth for later script/module migration.
+
 ## Historical note
 
 These docs were migrated out of the former hybrid `crypto-trading` / `trading-model` repo so realtime trading content can live in its own repository.
