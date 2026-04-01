@@ -1,11 +1,11 @@
 {
-  "version": "dummy-v2",
-  "updated_at": "2026-04-01T16:17:42.650104+00:00",
+  "version": "dummy-v3",
+  "updated_at": "2026-04-01T16:29:22.106194+00:00",
   "source": "dummy_e2e",
   "metadata": {
     "family": "dummy",
-    "config_path": "configs/dummy/dummy-v2.json",
-    "promoted_at": "2026-04-01T16:17:42.650104+00:00",
-    "promotion_note": "dummy smoke test version 2"
+    "config_path": "configs/dummy/dummy-v3.json",
+    "promoted_at": "2026-04-01T16:29:22.106194+00:00",
+    "promotion_note": "dummy smoke test version 3"
   }
 }
