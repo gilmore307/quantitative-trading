@@ -386,8 +386,11 @@ def _plan_to_dict(plan: ExecutionPlan) -> dict:
     }
 
 
-def executor_for(output: RegimeRunnerOutput) -> BaseExecutor:
-    regime = output.final_decision['primary']
+def executor_for(output: RegimeRunnerOutput, strategy_label: str | None = None) -> BaseExecutor:
     if output.route_decision.get('account') is None:
         return HoldExecutor()
+    label = str(strategy_label or '').strip().lower()
+    if label in EXECUTORS:
+        return EXECUTORS[label]
+    regime = output.final_decision['primary']
     return EXECUTORS.get(regime, HoldExecutor())

@@ -78,8 +78,9 @@ class ExecutionPipeline:
     def _active_strategy_snapshot(self) -> ActiveStrategySnapshot:
         return load_active_strategy_snapshot()
 
-    def build_plan(self, output: RegimeRunnerOutput) -> ExecutionPlan:
-        return executor_for(output).build_plan(output)
+    def build_plan(self, output: RegimeRunnerOutput, active_strategy: ActiveStrategySnapshot | None = None) -> ExecutionPlan:
+        strategy_label = None if active_strategy is None else str((active_strategy.metadata or {}).get('family') or active_strategy.version or '').lower()
+        return executor_for(output, strategy_label=strategy_label).build_plan(output)
 
     def _initial_trace(self, mode, mode_policy, regime_output: RegimeRunnerOutput) -> ExecutionDecisionTrace:
         summary = regime_output.decision_summary or {}
@@ -275,7 +276,7 @@ class ExecutionPipeline:
             trace.diagnostics.append('mode_blocked')
             plan = ExecutionPlan(regime=regime_output.final_decision['primary'], account=None, action='hold', reason=trace.block_reason)
         else:
-            plan = self.build_plan(regime_output)
+            plan = self.build_plan(regime_output, self._active_strategy_snapshot())
         if mode_policy.force_dry_run:
             self.adapter = DryRunExecutionAdapter()
         return self._run_single_account_plan(regime_output, plan, trace, exchange_snapshot)
@@ -297,7 +298,7 @@ class ExecutionPipeline:
             cycle_result = self._run_single_account_plan(regime_output, plan, trace, None)
             strategy_name = 'active_live'
         else:
-            plan = self.build_plan(regime_output)
+            plan = self.build_plan(regime_output, active_snapshot)
             trace = self._initial_trace(mode, mode_policy, regime_output)
             trace.pipeline_trade_enabled = True
             trace.allow_reason = f'active_strategy:{active_family}'
