@@ -522,12 +522,10 @@ def run_calibrate_event(*, hooks: WorkflowHooks | None = None, destructive: bool
 
 def run_strategy_upgrade_event(*, hooks: WorkflowHooks | None = None, destructive: bool = False) -> dict[str, object]:
     hooks = hooks or WorkflowHooks()
-    calibrate_result = run_calibrate_event(hooks=hooks, destructive=destructive)
     review_result = run_review_event(hooks=hooks)
     payload = {
         'event': 'strategy_upgrade_event',
         'destructive': destructive,
-        'calibrate_result': asdict(calibrate_result),
         'review_result': asdict(review_result),
         'started_mode': RuntimeMode.TRADE.value,
         'ended_mode': RuntimeMode.TRADE.value,

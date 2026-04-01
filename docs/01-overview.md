@@ -80,7 +80,7 @@ See:
 
 ### Step 6 — out-of-band upgrade validation runs
 A separate consumer processes the request and runs the unified `strategy_upgrade_event`.
-This event contains what used to be thought of separately as review and calibrate.
+This event now centers on handover recording plus review, and no longer performs calibrate/reset actions by default.
 
 See:
 - `02-runtime-and-modes.md`

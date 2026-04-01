@@ -33,11 +33,11 @@ When historical research finds a better strategy/parameter version, the live run
 
 `strategy_upgrade_event` is the unified promotion-time event.
 
-It combines what used to be thought of separately as:
-- review
-- calibrate
+It now centers on:
+- position handover observation / decision / marker
+- review / execution-diagnosis work
 
-Those are now better understood as sub-steps or helper concepts inside one promotion-triggered upgrade event.
+`calibrate` is deprecated in the strategy-switch flow and is no longer part of the default promotion-time event path.
 
 ## Position handling rule
 
@@ -75,6 +75,8 @@ The live side should be able to record:
 - `src/runtime/workflows.py`
 - `src/runners/strategy_upgrade_event.py`
 - `src/runners/review_event.py`
+
+Deprecated legacy path (no longer part of default upgrade switching):
 - `src/runners/calibrate_event.py`
 
 ### Artifact tagging

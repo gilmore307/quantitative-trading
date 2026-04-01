@@ -19,8 +19,8 @@ These are not long-running modes.
 They are events/jobs that happen around the always-on trade daemon.
 
 - `strategy_upgrade_event` — the canonical promotion-triggered upgrade event
-- `review` — legacy compatibility label; now treated as one sub-step inside `strategy_upgrade_event`
-- `calibrate` — legacy compatibility label; now treated as one sub-step inside `strategy_upgrade_event`
+- `review` — upgrade validation / execution diagnosis sub-step
+- `calibrate` — deprecated legacy label; not part of the default strategy-upgrade flow anymore
 
 ## Core runtime interpretation
 
@@ -42,7 +42,8 @@ The daemon should:
 They are now best understood as:
 - compatibility labels
 - helper/event concepts
-- sub-steps of the broader `strategy_upgrade_event`
+
+Only `review` remains part of the default `strategy_upgrade_event` flow. `calibrate` is deprecated for strategy switching because strategy performance is measured from segment-start account state to segment-end account state rather than by forcing a reset baseline.
 
 ## Strategy hot-swap model
 
@@ -67,7 +68,7 @@ If an upgrade happens while a position is open:
 
 - **strategy upgrade event** = the promotion-triggered online upgrade handling path
 - **review** = upgrade validation / execution diagnosis sub-step
-- **calibrate** = helper / baseline-refresh sub-step
+- **calibrate** = deprecated legacy reset/baseline-refresh term; not part of the default strategy-switch path
 
 ## Main code / script touchpoints
 
@@ -94,4 +95,5 @@ If an upgrade happens while a position is open:
 Think of the system as:
 - `trade` = the continuous state
 - `strategy_upgrade_event` = the main upgrade-time event
-- `review` / `calibrate` = internal event parts, not first-class modes
+- `review` = an internal event part, not a first-class mode
+- `calibrate` = deprecated legacy term, not a first-class mode and not part of the default upgrade event path
