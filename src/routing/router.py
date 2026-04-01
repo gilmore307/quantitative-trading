@@ -6,11 +6,11 @@ from src.regimes.models import Regime, RegimeDecision
 
 
 REGIME_ACCOUNT_MAP: dict[Regime, str | None] = {
-    Regime.TREND: "trend",
-    Regime.RANGE: "meanrev",
-    Regime.COMPRESSION: "compression",
-    Regime.CROWDED: "crowded",
-    Regime.SHOCK: "realtime",
+    Regime.TREND: "active_live",
+    Regime.RANGE: "active_live",
+    Regime.COMPRESSION: "active_live",
+    Regime.CROWDED: "active_live",
+    Regime.SHOCK: "active_live",
     Regime.CHAOTIC: None,
 }
 
@@ -48,7 +48,7 @@ def route_regime(regime: Regime) -> RouteDecision:
     return RouteDecision(
         regime=regime,
         account=account,
-        strategy_family=None if account is None else regime.value,
+        strategy_family='active_live' if account is not None else None,
         trade_enabled=trade_enabled,
         block_reason=block_reason,
         allow_reason=allow_reason,

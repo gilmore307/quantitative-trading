@@ -371,15 +371,6 @@ EXECUTORS = {
 }
 
 
-ALWAYS_ON_STRATEGY_ACCOUNT_MAP = {
-    'trend': 'trend',
-    'range': 'meanrev',
-    'compression': 'compression',
-    'crowded': 'crowded',
-    'shock': 'realtime',
-}
-
-
 def _plan_to_dict(plan: ExecutionPlan) -> dict:
     return {
         'regime': plan.regime,

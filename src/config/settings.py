@@ -119,23 +119,18 @@ class Settings(BaseModel):
         return self.strategy_accounts[alias]
 
     def account_for_strategy(self, strategy_name: str) -> StrategyAccountConfig:
-        alias = self.strategy_account_aliases.get(strategy_name, "active_live")
-        if alias not in self.strategy_accounts:
-            raise KeyError(f"No strategy account configured for strategy={strategy_name}, alias={alias}")
-        return self.strategy_accounts[alias]
+        return self.active_live_account()
 
     def strategy_for_account_alias(self, account_alias: str | None) -> str | None:
         if not account_alias:
             return None
-        for strategy, alias in self.strategy_account_aliases.items():
-            if alias == account_alias:
-                return strategy
+        if account_alias == self.active_live_account().alias:
+            return 'active_live'
         return None
 
     def display_name_for_account_alias(self, account_alias: str | None) -> str:
-        strategy = self.strategy_for_account_alias(account_alias)
-        if strategy:
-            return strategy
+        if account_alias == self.active_live_account().alias:
+            return 'active_live'
         return account_alias or "unknown"
 
     @classmethod
