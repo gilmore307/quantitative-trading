@@ -16,6 +16,11 @@ HISTORY_PATH = lambda: dated_jsonl_path('execution-cycles')
 DETAILED_HISTORY_PATH = lambda: dated_jsonl_path('execution-cycle-details')
 ANOMALY_HISTORY_PATH = lambda: dated_jsonl_path('execution-anomalies')
 REGIME_HISTORY_PATH = lambda: dated_jsonl_path('regime-local-history')
+REDACT_KEYS = {
+    'okx_api_key', 'okx_api_secret', 'okx_api_passphrase',
+    'discord_bot_token', 'discord_webhook_url',
+    'api_key', 'api_secret', 'api_passphrase', 'token', 'secret', 'passphrase', 'webhook_url',
+}
 
 
 def _resolve_path(path_or_factory):
@@ -31,6 +36,41 @@ def _json_default(value: Any):
 def _append_jsonl(path_or_factory, payload: dict[str, Any]) -> None:
     with _resolve_path(path_or_factory).open('a', encoding='utf-8') as handle:
         handle.write(json.dumps(payload, default=_json_default, ensure_ascii=False) + '\n')
+
+
+def _redact_value(value: Any) -> Any:
+    if value is None:
+        return None
+    if isinstance(value, (bool, int, float)):
+        return value
+    text = str(value)
+    if not text:
+        return text
+    return '***REDACTED***'
+
+
+def _sanitize_for_artifact(value: Any) -> Any:
+    if isinstance(value, dict):
+        sanitized = {}
+        for key, inner in value.items():
+            if str(key).lower() in REDACT_KEYS:
+                sanitized[key] = _redact_value(inner)
+            else:
+                sanitized[key] = _sanitize_for_artifact(inner)
+        return sanitized
+    if isinstance(value, list):
+        return [_sanitize_for_artifact(item) for item in value]
+    if hasattr(value, 'model_dump'):
+        return _sanitize_for_artifact(value.model_dump())
+    return value
+
+
+def _sanitize_execution_payload(payload: dict[str, Any]) -> dict[str, Any]:
+    cleaned = _sanitize_for_artifact(payload)
+    regime_output = cleaned.get('regime_output')
+    if isinstance(regime_output, dict) and 'settings' in regime_output:
+        regime_output['settings'] = '[REDACTED_SETTINGS]'
+    return cleaned
 
 
 def _balance_summary_for_result(result: ExecutionCycleResult) -> dict[str, Any] | None:
@@ -170,7 +210,7 @@ def _build_attribution_snapshot(result: ExecutionCycleResult) -> dict[str, Any]:
 
 
 def build_execution_artifact(result: ExecutionCycleResult) -> dict[str, Any]:
-    payload = asdict(result)
+    payload = _sanitize_execution_payload(asdict(result))
     payload['artifact_type'] = 'execution_cycle'
     payload['recorded_at'] = datetime.now(UTC).isoformat()
     payload['feature_snapshot'] = _feature_snapshot(result)
@@ -381,16 +421,16 @@ def build_active_strategy_execution_artifact(result: ActiveStrategyExecutionResu
         'artifact_type': 'active_strategy_execution_cycle',
         'recorded_at': datetime.now(UTC).isoformat(),
         'symbol': result.regime_output.symbol,
-        'runtime_state': result.runtime_state,
-        'active_strategy': result.active_strategy,
+        'runtime_state': _sanitize_for_artifact(result.runtime_state),
+        'active_strategy': _sanitize_for_artifact(result.active_strategy),
         'active_strategy_name': result.strategy_name,
         'shared_regime': {
             'final_regime': result.regime_output.final_decision.get('primary'),
             'confidence': result.regime_output.final_decision.get('confidence'),
-            'decision_summary': result.regime_output.decision_summary,
+            'decision_summary': _sanitize_for_artifact(result.regime_output.decision_summary),
         },
         'result': primary,
-        'live_positions': result.live_positions,
+        'live_positions': _sanitize_for_artifact(result.live_positions),
         'summary': {
             'runtime_mode': result.runtime_state.get('mode'),
             'active_strategy_version': (result.active_strategy or {}).get('version'),
