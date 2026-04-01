@@ -3,10 +3,10 @@ from __future__ import annotations
 from dataclasses import asdict, dataclass
 from typing import Any
 
-from src.config.accounts import V2_ACCOUNTS
 
-
+ACTIVE_LIVE_ALIAS = 'active_live'
 FLAT_COMPARE_ALIAS = 'flat_compare'
+DEFAULT_COMPARE_ACCOUNTS = [ACTIVE_LIVE_ALIAS, FLAT_COMPARE_ALIAS]
 
 
 def _attribution_confidence(raw: dict[str, Any]) -> str | None:
@@ -65,9 +65,6 @@ def _canonical_equity_end(raw: dict[str, Any]) -> float | None:
     if equity is not None:
         return float(equity)
     return None
-
-
-DEFAULT_COMPARE_ACCOUNTS = [account.alias for account in V2_ACCOUNTS] + [FLAT_COMPARE_ALIAS]
 
 
 def build_performance_snapshot(metrics_by_account: dict[str, dict[str, Any]] | None = None) -> dict[str, Any]:

@@ -91,7 +91,7 @@ These imports must be audited as we move from `flows/` into the final `src/` pac
 
 ### 2. Old multi-account assumptions remain in tests and pipeline helpers
 Current tests in the old repo still heavily reflect old runner names and old multi-account assumptions.
-The dummy path should help identify which of those are irrelevant to the new single-account live architecture.
+The dummy path should help identify which of those are irrelevant to the new architecture where the live side trades only the currently promoted historical-side model/version.
 
 ### 3. Regime runner role may be oversized
 `regime_runner.py` still needs validation against the current design philosophy.

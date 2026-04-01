@@ -30,7 +30,7 @@ Primary writer modules / entrypoints:
 
 ## Primary artifact model
 
-The live system currently assumes one live account as the main operating model.
+The live system currently assumes one promoted live model/version and one active live execution path as the main operating model.
 
 Each execution artifact should emphasize:
 

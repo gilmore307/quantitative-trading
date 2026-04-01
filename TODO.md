@@ -3,6 +3,7 @@
 ## Current focus
 - make the dummy strategy E2E path actually runnable in `quantitative-trading`
 - converge runtime artifacts on a single active-strategy / single-account live path
+- enforce the architecture rule that **only the model/version promoted from the historical backtest side is traded live**
 - remove stale parallel / compare / router-composite compatibility layers only where the dummy path proves they are not needed
 
 ## Immediate next actions
@@ -24,3 +25,5 @@
 ## Notes
 - docs-first migration rule still stands: keep project docs updated as the code path is clarified
 - dummy E2E remains the deletion gate for old files/modules
+- strategy family names such as `trend` / `meanrev` / `compression` / `crowded` / `realtime` are historical-side taxonomy labels, not the intended steady-state live account roster for this repo
+- the live side should be modeled around the currently promoted active strategy/model pointer, not around a standing multi-family live-account matrix

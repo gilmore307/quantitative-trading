@@ -43,8 +43,9 @@ Scheduled weekly/monthly/quarterly summaries may still exist as secondary operat
 
 The review path should assume:
 - a continuously running trade daemon
-- a currently active promoted strategy version
-- potential hot-swap between strategy versions without daemon restart
+- a currently active promoted strategy/model version
+- potential hot-swap between promoted versions without daemon restart
+- no standing parallel live-account comparison matrix as the core operating model
 
 ### Core artifact families
 - execution cycle artifacts

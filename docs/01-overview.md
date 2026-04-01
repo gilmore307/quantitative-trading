@@ -31,9 +31,14 @@ Historical research / backtest is responsible for:
 ### Live line
 Realtime trading is responsible for:
 - consuming the promoted result
-- trading continuously with it
+- trading continuously with the **single currently promoted live model/version**
 - recording real execution behavior
 - diagnosing execution deviations and operational health
+
+Important constraint:
+- this repo is **not** intended to keep a standing matrix of live family accounts all trading in parallel
+- family labels from the historical side are selection / taxonomy outputs, not the steady-state live execution roster
+- the canonical live object is the currently promoted active strategy/model pointer
 
 ## Main flow
 
