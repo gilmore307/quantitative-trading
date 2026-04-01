@@ -279,12 +279,22 @@ class ExecutionPipeline:
         return self._run_single_account_plan(regime_output, plan, trace, exchange_snapshot)
 
     def run_cycle_parallel(self) -> ParallelExecutionCycleResult:
+        """Compatibility wrapper for the old API.
+
+        The current live design is single-account / single-active-strategy.
+        So this method now executes one effective active strategy path and wraps
+        the result in a ParallelExecutionCycleResult-shaped payload for backward compatibility.
+        """
         mode = self.runtime_store.get().mode
         mode_policy = policy_for_mode(mode)
         regime_output = self.regime_runner.run_once() if mode_policy.allow_strategy_execution else self._idle_regime_output()
         if mode_policy.force_dry_run:
             self.adapter = DryRunExecutionAdapter()
+
+        active_snapshot = self._active_strategy_snapshot()
+        active_family = str((active_snapshot.metadata or {}).get('family') or regime_output.final_decision.get('primary') or 'default')
         results: dict[str, ExecutionCycleResult] = {}
+
         if not mode_policy.allow_strategy_execution or not mode_policy.allow_normal_routing:
             trace = self._initial_trace(mode, mode_policy, regime_output)
             trace.block_reason = f'mode_no_strategy:{mode.value}' if not mode_policy.allow_strategy_execution else f'mode_blocked:{mode.value}'
@@ -292,7 +302,18 @@ class ExecutionPipeline:
             plan = ExecutionPlan(regime=regime_output.final_decision['primary'], account=None, action='hold', reason=trace.block_reason)
             results['idle'] = self._run_single_account_plan(regime_output, plan, trace, None)
         else:
-            for strategy_name, plan in self.build_parallel_plans(regime_output).items():
-                trace = ExecutionDecisionTrace(mode=mode.value, mode_allows_routing=mode_policy.allow_normal_routing, decision_trade_enabled=True, route_trade_enabled=True, pipeline_trade_enabled=False, allow_reason=f'always_on_{strategy_name}', block_reason=None, diagnostics=['parallel_execution'])
-                results[strategy_name] = self._run_single_account_plan(regime_output, plan, trace, None)
-        return ParallelExecutionCycleResult(regime_output=regime_output, results=results, runtime_state=asdict(self.runtime_store.get()), active_strategy=asdict(self._active_strategy_snapshot()), live_positions=[asdict(position) for position in self.controller.store.list_positions()], router_composite=self.composite_simulator.snapshot(regime_output))
+            plan = self.build_plan(regime_output)
+            trace = self._initial_trace(mode, mode_policy, regime_output)
+            trace.pipeline_trade_enabled = True
+            trace.allow_reason = f'active_strategy:{active_family}'
+            trace.diagnostics.append('single_active_strategy_execution')
+            results[active_family] = self._run_single_account_plan(regime_output, plan, trace, None)
+
+        return ParallelExecutionCycleResult(
+            regime_output=regime_output,
+            results=results,
+            runtime_state=asdict(self.runtime_store.get()),
+            active_strategy=asdict(active_snapshot),
+            live_positions=[asdict(position) for position in self.controller.store.list_positions()],
+            router_composite=self.composite_simulator.snapshot(regime_output),
+        )
