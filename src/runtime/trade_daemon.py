@@ -13,7 +13,7 @@ from src.config.settings import Settings
 from src.execution.adapters import DryRunExecutionAdapter, OkxExecutionAdapter
 from src.execution.pipeline import ExecutionPipeline
 from src.ops.discord_notifier import DiscordNotifier
-from src.execution_cycle import persist_parallel_execution_artifact
+from src.execution_cycle import persist_active_strategy_execution_artifact
 from src.state.log_paths import RUNTIME_DIR, dated_jsonl_path
 from src.runtime.mode import RuntimeMode
 from src.runtime.store import RuntimeStore
@@ -151,8 +151,8 @@ def main() -> None:
                 _log_event(request_event)
                 _store_upgrade_request(request_event)
                 previous_strategy_version = active_strategy.version
-            result = pipeline.run_cycle_parallel()
-            artifact = persist_parallel_execution_artifact(result)
+            result = pipeline.run_cycle_active_strategy()
+            artifact = persist_active_strategy_execution_artifact(result)
             summary = artifact.get('summary', {}) if isinstance(artifact, dict) else {}
             primary_summary = summary.get('primary_summary') or {}
             cycle_event = {

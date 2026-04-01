@@ -6,7 +6,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
-from src.execution.pipeline import ExecutionCycleResult, ExecutionPipeline, ParallelExecutionCycleResult
+from src.execution.pipeline import ExecutionCycleResult, ExecutionPipeline, ActiveStrategyExecutionResult
 from src.review.account_metrics import build_account_metrics_from_cycle
 from src.review.compare import build_compare_snapshot
 from src.state.log_paths import RUNTIME_DIR, dated_jsonl_path
@@ -15,9 +15,7 @@ from src.strategies.executors import build_shadow_plans
 
 OUT_DIR = RUNTIME_DIR
 LATEST_PATH = OUT_DIR / 'latest-execution-cycle.json'
-LATEST_PARALLEL_PATH = OUT_DIR / 'latest-parallel-execution-cycle.json'
 HISTORY_PATH = lambda: dated_jsonl_path('execution-cycles')
-PARALLEL_HISTORY_PATH = lambda: dated_jsonl_path('parallel-execution-cycles')
 ANOMALY_HISTORY_PATH = lambda: dated_jsonl_path('execution-anomalies')
 REGIME_HISTORY_PATH = lambda: dated_jsonl_path('regime-local-history')
 STRATEGY_ACTIVITY_PATH = lambda: dated_jsonl_path('strategy-activity-history')
@@ -421,65 +419,49 @@ def persist_execution_artifact(result: ExecutionCycleResult) -> dict[str, Any]:
     return artifact
 
 
-def build_parallel_execution_artifact(result: ParallelExecutionCycleResult) -> dict[str, Any]:
-    per_strategy = {name: build_execution_artifact(row) for name, row in result.results.items()}
-    primary = next(iter(per_strategy.values()), None)
+def build_active_strategy_execution_artifact(result: ActiveStrategyExecutionResult) -> dict[str, Any]:
+    primary = build_execution_artifact(result.result)
     payload = {
-        'artifact_type': 'parallel_execution_cycle',
+        'artifact_type': 'active_strategy_execution_cycle',
         'recorded_at': datetime.now(UTC).isoformat(),
-        'regime_output': _json_default(result.regime_output.observed_at) if False else None,
         'symbol': result.regime_output.symbol,
         'runtime_state': result.runtime_state,
         'active_strategy': result.active_strategy,
+        'active_strategy_name': result.strategy_name,
         'shared_regime': {
             'final_regime': result.regime_output.final_decision.get('primary'),
             'confidence': result.regime_output.final_decision.get('confidence'),
             'decision_summary': result.regime_output.decision_summary,
         },
-        'results': per_strategy,
+        'result': primary,
         'live_positions': result.live_positions,
-        'router_composite': result.router_composite,
         'summary': {
             'runtime_mode': result.runtime_state.get('mode'),
             'active_strategy_version': (result.active_strategy or {}).get('version'),
             'active_strategy_family': ((result.active_strategy or {}).get('metadata') or {}).get('family'),
             'active_strategy_config_path': ((result.active_strategy or {}).get('metadata') or {}).get('config_path'),
+            'active_strategy_name': result.strategy_name,
             'symbol': result.regime_output.symbol,
             'regime': result.regime_output.final_decision.get('primary'),
-            'strategy_results': {
-                name: {
-                    'plan_action': artifact.get('summary', {}).get('plan_action'),
-                    'plan_account': artifact.get('summary', {}).get('plan_account'),
-                    'receipt_accepted': artifact.get('summary', {}).get('receipt_accepted'),
-                    'block_reason': artifact.get('summary', {}).get('block_reason'),
-                    'policy_reason': artifact.get('summary', {}).get('policy_reason'),
-                    'strategy_stats_eligible': artifact.get('summary', {}).get('strategy_stats_eligible'),
-                }
-                for name, artifact in per_strategy.items()
-            },
-            'entered_accounts': [artifact.get('summary', {}).get('plan_account') for artifact in per_strategy.values() if artifact.get('summary', {}).get('submission_attempted')],
-            'accepted_accounts': [artifact.get('summary', {}).get('plan_account') for artifact in per_strategy.values() if artifact.get('summary', {}).get('receipt_accepted')],
-            'blocked_accounts': [artifact.get('summary', {}).get('plan_account') for artifact in per_strategy.values() if artifact.get('summary', {}).get('block_reason')],
-            'primary_summary': None if primary is None else primary.get('summary'),
+            'primary_summary': primary.get('summary'),
         },
     }
     return payload
 
 
-def persist_parallel_execution_artifact(result: ParallelExecutionCycleResult) -> dict[str, Any]:
-    artifact = build_parallel_execution_artifact(result)
-    LATEST_PARALLEL_PATH.write_text(json.dumps(artifact, indent=2, default=_json_default, ensure_ascii=False))
-    with PARALLEL__resolve_path(HISTORY_PATH).open('a', encoding='utf-8') as handle:
+def persist_active_strategy_execution_artifact(result: ActiveStrategyExecutionResult) -> dict[str, Any]:
+    artifact = build_active_strategy_execution_artifact(result)
+    LATEST_PATH.write_text(json.dumps(artifact, indent=2, default=_json_default, ensure_ascii=False))
+    with _resolve_path(HISTORY_PATH).open('a', encoding='utf-8') as handle:
         handle.write(json.dumps(artifact, default=_json_default, ensure_ascii=False) + '\n')
-    for row in result.results.values():
-        persist_execution_artifact(row)
+    persist_execution_artifact(result.result)
     return artifact
 
 
 def main() -> None:
     pipeline = ExecutionPipeline()
-    result = pipeline.run_cycle(exchange_snapshot=None)
-    artifact = persist_execution_artifact(result)
+    result = pipeline.run_cycle_active_strategy()
+    artifact = persist_active_strategy_execution_artifact(result)
     print(json.dumps(artifact, indent=2, default=_json_default, ensure_ascii=False))
 
 
