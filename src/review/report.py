@@ -79,6 +79,13 @@ def _build_performance_summary(performance_snapshot: dict[str, Any]) -> dict[str
     ranked.sort(key=_score_row, reverse=True)
 
     def slim(row: dict[str, Any]) -> dict[str, Any]:
+        theoretical_gross = None
+        pnl = row.get('pnl_usdt')
+        fee = row.get('fee_usdt')
+        funding = row.get('funding_usdt')
+        if pnl is not None or fee is not None or funding is not None:
+            theoretical_gross = float(pnl or 0.0) + float(fee or 0.0) + float(funding or 0.0)
+        realized_execution_drag = None if theoretical_gross is None or pnl is None else theoretical_gross - float(pnl)
         return {
             'account': row.get('account'),
             'pnl_usdt': row.get('pnl_usdt'),
@@ -95,42 +102,52 @@ def _build_performance_summary(performance_snapshot: dict[str, Any]) -> dict[str
             'attribution_realized_pnl_source': row.get('attribution_realized_pnl_source'),
             'attribution_equity_source': row.get('attribution_equity_source'),
             'attribution_confidence': _attribution_confidence(row),
+            'theoretical_gross_pnl_proxy_usdt': theoretical_gross,
+            'realized_execution_drag_usdt': realized_execution_drag,
             'source': row.get('source'),
         }
 
     leaderboard = [slim(row) for row in ranked]
     top = leaderboard[0] if leaderboard else None
-    bottom = leaderboard[-1] if len(leaderboard) > 1 else (leaderboard[0] if leaderboard else None)
-
     highest_fee = None
     fee_rows = [row for row in ranked if row.get('fee_usdt') is not None]
     if fee_rows:
         highest_fee = slim(max(fee_rows, key=lambda row: float(row.get('fee_usdt') or 0.0)))
-
     highest_exposure = None
     exposure_rows = [row for row in ranked if row.get('exposure_time_pct') is not None]
     if exposure_rows:
         highest_exposure = slim(max(exposure_rows, key=lambda row: float(row.get('exposure_time_pct') or 0.0)))
 
+    execution_deviation = None
+    if top is not None:
+        execution_deviation = {
+            'account': top.get('account'),
+            'actual_pnl_usdt': top.get('pnl_usdt'),
+            'theoretical_gross_pnl_proxy_usdt': top.get('theoretical_gross_pnl_proxy_usdt'),
+            'realized_execution_drag_usdt': top.get('realized_execution_drag_usdt'),
+            'fee_usdt': top.get('fee_usdt'),
+            'funding_usdt': top.get('funding_usdt'),
+            'trade_count': top.get('trade_count'),
+            'exposure_time_pct': top.get('exposure_time_pct'),
+            'attribution_confidence': top.get('attribution_confidence'),
+        }
+
     insights: list[str] = []
     if top is not None:
-        insights.append(f"top_account:{top['account']}")
+        insights.append(f"active_live_pnl:{top.get('pnl_usdt')}")
+    if execution_deviation is not None and execution_deviation.get('realized_execution_drag_usdt') is not None:
+        insights.append(f"execution_drag:{execution_deviation.get('realized_execution_drag_usdt')}")
     if highest_fee is not None:
         insights.append(f"highest_fee_drag:{highest_fee['account']}")
     if highest_exposure is not None and float(highest_exposure.get('exposure_time_pct') or 0.0) >= 80.0:
         insights.append(f"high_exposure:{highest_exposure['account']}")
-    if bottom is not None and _row_pnl(bottom) < 0.0:
-        insights.append(f"negative_pnl:{bottom['account']}")
-    high_confidence_accounts = [row.get('account') for row in leaderboard if row.get('attribution_confidence') == 'high']
-    if high_confidence_accounts:
-        insights.append(f"high_confidence_attribution:{','.join(str(v) for v in high_confidence_accounts)}")
 
     return {
         'leaderboard': leaderboard,
         'top_account': top,
-        'bottom_account': bottom,
         'highest_fee_drag_account': highest_fee,
         'highest_exposure_account': highest_exposure,
+        'execution_deviation': execution_deviation,
         'insights': insights,
     }
 
@@ -200,10 +217,7 @@ def _build_regime_local_summary(history_rows: list[dict[str, Any]]) -> dict[str,
             'route_families': bucket['route_families'],
         })
     rows.sort(key=lambda item: (-int(item['total_cycles']), item['regime']))
-    return {
-        'rows': rows,
-        'status': 'ready' if rows else 'placeholder',
-    }
+    return {'rows': rows, 'status': 'ready' if rows else 'placeholder'}
 
 
 def _build_overlap_summary(history_rows: list[dict[str, Any]]) -> dict[str, Any]:
@@ -221,19 +235,9 @@ def _build_overlap_summary(history_rows: list[dict[str, Any]]) -> dict[str, Any]
         gap = round(float(top_score) - float(second_score), 10)
         if gap > 0.15:
             continue
-        rows.append({
-            'final_regime': final_regime or top_name,
-            'top_regime': top_name,
-            'top_score': top_score,
-            'runner_up_regime': second_name,
-            'runner_up_score': second_score,
-            'score_gap': gap,
-        })
+        rows.append({'final_regime': final_regime or top_name, 'top_regime': top_name, 'top_score': top_score, 'runner_up_regime': second_name, 'runner_up_score': second_score, 'score_gap': gap})
     rows.sort(key=lambda item: (item['score_gap'], str(item['final_regime'])))
-    return {
-        'rows': rows[:50],
-        'status': 'ready' if rows else 'placeholder',
-    }
+    return {'rows': rows[:50], 'status': 'ready' if rows else 'placeholder'}
 
 
 def _build_mapping_validity_summary(history_rows: list[dict[str, Any]]) -> dict[str, Any]:
@@ -244,14 +248,7 @@ def _build_mapping_validity_summary(history_rows: list[dict[str, Any]]) -> dict[
         regime = str(summary.get('regime') or summary.get('final_regime') or 'unknown')
         route_account = summary.get('route_account') or summary.get('plan_account')
         expected_account = expected_map.get(regime)
-        bucket = buckets.setdefault(regime, {
-            'regime': regime,
-            'expected_account': expected_account,
-            'total_cycles': 0,
-            'matched_cycles': 0,
-            'routed_none_cycles': 0,
-            'route_counts': {},
-        })
+        bucket = buckets.setdefault(regime, {'regime': regime, 'expected_account': expected_account, 'total_cycles': 0, 'matched_cycles': 0, 'routed_none_cycles': 0, 'route_counts': {}})
         bucket['total_cycles'] += 1
         route_key = 'none' if route_account is None else str(route_account)
         bucket['route_counts'][route_key] = bucket['route_counts'].get(route_key, 0) + 1
@@ -265,33 +262,16 @@ def _build_mapping_validity_summary(history_rows: list[dict[str, Any]]) -> dict[
         matched = int(bucket['matched_cycles'])
         match_rate = 0.0 if total <= 0 else round((matched / total) * 100.0, 4)
         dominant_route = sorted(bucket['route_counts'].items(), key=lambda item: (-item[1], item[0]))[0][0] if bucket['route_counts'] else None
-        rows.append({
-            'regime': regime,
-            'expected_account': bucket['expected_account'],
-            'dominant_route': dominant_route,
-            'total_cycles': total,
-            'matched_cycles': matched,
-            'match_rate_pct': match_rate,
-            'routed_none_cycles': int(bucket['routed_none_cycles']),
-            'route_counts': bucket['route_counts'],
-        })
+        rows.append({'regime': regime, 'expected_account': bucket['expected_account'], 'dominant_route': dominant_route, 'total_cycles': total, 'matched_cycles': matched, 'match_rate_pct': match_rate, 'routed_none_cycles': int(bucket['routed_none_cycles']), 'route_counts': bucket['route_counts']})
     rows.sort(key=lambda item: (-int(item['total_cycles']), item['regime']))
-    return {
-        'rows': rows,
-        'status': 'ready' if rows else 'placeholder',
-    }
+    return {'rows': rows, 'status': 'ready' if rows else 'placeholder'}
 
 
 def _build_execution_quality_summary(history_rows: list[dict[str, Any]]) -> dict[str, Any]:
     clean = 0
     excluded = 0
     reasons: dict[str, int] = {}
-    confirmation_modes = {
-        'trade_confirmed': 0,
-        'trade_ids_confirmed': 0,
-        'position_confirmed': 0,
-        'other_clean': 0,
-    }
+    confirmation_modes = {'trade_confirmed': 0, 'trade_ids_confirmed': 0, 'position_confirmed': 0, 'other_clean': 0}
     excluded_pnl_usdt = 0.0
     excluded_rows: list[dict[str, Any]] = []
     anomaly_groups: dict[str, dict[str, Any]] = {}
@@ -319,13 +299,7 @@ def _build_execution_quality_summary(history_rows: list[dict[str, Any]]) -> dict
         if account in metrics and isinstance(metrics.get(account), dict):
             pnl = _row_pnl(metrics[account])
         excluded_pnl_usdt += pnl
-        sample = {
-            'account': account,
-            'reason': reason,
-            'pnl_usdt': pnl,
-            'entry_verified_hint': summary.get('entry_verified_hint'),
-            'entry_trade_confirmed': summary.get('entry_trade_confirmed'),
-        }
+        sample = {'account': account, 'reason': reason, 'pnl_usdt': pnl, 'entry_verified_hint': summary.get('entry_verified_hint'), 'entry_trade_confirmed': summary.get('entry_trade_confirmed')}
         excluded_rows.append(sample)
         group = anomaly_groups.setdefault(reason, {'reason': reason, 'count': 0, 'pnl_usdt': 0.0, 'accounts': [], 'samples': []})
         group['count'] += 1
@@ -334,73 +308,32 @@ def _build_execution_quality_summary(history_rows: list[dict[str, Any]]) -> dict
             group['accounts'].append(account)
         if len(group['samples']) < 5:
             group['samples'].append(sample)
-    top_excluded_reasons = [
-        {'reason': key, 'count': value}
-        for key, value in sorted(reasons.items(), key=lambda item: (-item[1], item[0]))
-    ]
+    top_excluded_reasons = [{'reason': key, 'count': value} for key, value in sorted(reasons.items(), key=lambda item: (-item[1], item[0]))]
     anomaly_breakdown = sorted(anomaly_groups.values(), key=lambda item: (-int(item['count']), str(item['reason'])))
-    confirmation_breakdown = [
-        {'mode': key, 'count': value}
-        for key, value in confirmation_modes.items()
-        if value > 0
-    ]
-    return {
-        'clean_trade_count': clean,
-        'excluded_trade_count': excluded,
-        'excluded_pnl_usdt': round(excluded_pnl_usdt, 10),
-        'top_excluded_reasons': top_excluded_reasons,
-        'excluded_samples': excluded_rows[:20],
-        'anomaly_breakdown': anomaly_breakdown,
-        'confirmation_breakdown': confirmation_breakdown,
-        'status': 'ready' if history_rows else 'placeholder',
-    }
+    confirmation_breakdown = [{'mode': key, 'count': value} for key, value in confirmation_modes.items() if value > 0]
+    return {'clean_trade_count': clean, 'excluded_trade_count': excluded, 'excluded_pnl_usdt': round(excluded_pnl_usdt, 10), 'top_excluded_reasons': top_excluded_reasons, 'excluded_samples': excluded_rows[:20], 'anomaly_breakdown': anomaly_breakdown, 'confirmation_breakdown': confirmation_breakdown, 'status': 'ready' if history_rows else 'placeholder'}
+
+
+def _build_execution_deviation_summary(performance_summary: dict[str, Any]) -> dict[str, Any]:
+    row = performance_summary.get('execution_deviation') if isinstance(performance_summary, dict) else None
+    if not isinstance(row, dict):
+        return {'status': 'placeholder', 'row': None}
+    return {'status': 'ready', 'row': row}
 
 
 def _build_regime_local_section(regime_local: dict[str, Any]) -> dict[str, Any]:
-    items = []
     rows = regime_local.get('rows', []) if isinstance(regime_local, dict) else []
-    if rows:
-        items.append({'kind': 'regime_rows', 'rows': rows})
-    highlights = []
-    for row in rows[:5]:
-        highlights.append(f"{row.get('regime')}:clean={row.get('clean_cycles')}/excluded={row.get('excluded_cycles')}")
-    return {
-        'key': 'regime_local_review',
-        'title': 'Regime-Local Review',
-        'status': regime_local.get('status', 'placeholder'),
-        'items': items,
-        'highlights': highlights,
-    }
+    return {'key': 'regime_local_review', 'title': 'Regime-Local Review', 'status': regime_local.get('status', 'placeholder'), 'items': ([{'kind': 'regime_rows', 'rows': rows}] if rows else []), 'highlights': [f"{row.get('regime')}:clean={row.get('clean_cycles')}/excluded={row.get('excluded_cycles')}" for row in rows[:5]]}
 
 
 def _build_overlap_section(overlap: dict[str, Any]) -> dict[str, Any]:
     rows = overlap.get('rows', []) if isinstance(overlap, dict) else []
-    items = [{'kind': 'overlap_rows', 'rows': rows}] if rows else []
-    highlights = []
-    for row in rows[:6]:
-        highlights.append(f"{row.get('final_regime')}: top={row.get('top_regime')} runner_up={row.get('runner_up_regime')} gap={row.get('score_gap')}")
-    return {
-        'key': 'overlap_review',
-        'title': 'Regime Overlap Review',
-        'status': overlap.get('status', 'placeholder'),
-        'items': items,
-        'highlights': highlights,
-    }
+    return {'key': 'overlap_review', 'title': 'Regime Overlap Review', 'status': overlap.get('status', 'placeholder'), 'items': ([{'kind': 'overlap_rows', 'rows': rows}] if rows else []), 'highlights': [f"{row.get('final_regime')}: top={row.get('top_regime')} runner_up={row.get('runner_up_regime')} gap={row.get('score_gap')}" for row in rows[:6]]}
 
 
 def _build_mapping_validity_section(mapping_validity: dict[str, Any]) -> dict[str, Any]:
     rows = mapping_validity.get('rows', []) if isinstance(mapping_validity, dict) else []
-    items = [{'kind': 'mapping_rows', 'rows': rows}] if rows else []
-    highlights = []
-    for row in rows[:6]:
-        highlights.append(f"{row.get('regime')}:expected={row.get('expected_account')} dominant={row.get('dominant_route')} match={row.get('match_rate_pct')}%")
-    return {
-        'key': 'mapping_validity_review',
-        'title': 'Mapping Validity Review',
-        'status': mapping_validity.get('status', 'placeholder'),
-        'items': items,
-        'highlights': highlights,
-    }
+    return {'key': 'mapping_validity_review', 'title': 'Mapping Validity Review', 'status': mapping_validity.get('status', 'placeholder'), 'items': ([{'kind': 'mapping_rows', 'rows': rows}] if rows else []), 'highlights': [f"{row.get('regime')}:expected={row.get('expected_account')} dominant={row.get('dominant_route')} match={row.get('match_rate_pct')}%" for row in rows[:6]]}
 
 
 def _build_execution_quality_section(execution_quality: dict[str, Any]) -> dict[str, Any]:
@@ -416,212 +349,88 @@ def _build_execution_quality_section(execution_quality: dict[str, Any]) -> dict[
         highlights.append(f"excluded_trade_count:{execution_quality.get('excluded_trade_count')}")
     if execution_quality.get('excluded_pnl_usdt'):
         highlights.append(f"excluded_pnl_usdt:{execution_quality.get('excluded_pnl_usdt')}")
-    return {
-        'key': 'execution_quality',
-        'title': 'Execution Quality',
-        'status': execution_quality.get('status', 'placeholder'),
-        'items': items,
-        'highlights': highlights,
-    }
+    return {'key': 'execution_quality', 'title': 'Execution Quality', 'status': execution_quality.get('status', 'placeholder'), 'items': items, 'highlights': highlights}
 
 
 def _build_live_performance_section(performance_summary: dict[str, Any]) -> dict[str, Any]:
     leaderboard = performance_summary.get('leaderboard', []) if isinstance(performance_summary, dict) else []
-    items: list[dict[str, Any]] = []
-    if leaderboard:
-        items.append({'kind': 'leaderboard', 'rows': leaderboard})
     top = performance_summary.get('top_account') if isinstance(performance_summary, dict) else None
-    bottom = performance_summary.get('bottom_account') if isinstance(performance_summary, dict) else None
+    highlights = [f"active_live_pnl:{top.get('pnl_usdt')}" for top in [top] if top is not None]
+    return {'key': 'live_performance_summary', 'title': 'Live Performance Summary', 'status': ('ready' if leaderboard else 'placeholder'), 'items': ([{'kind': 'leaderboard', 'rows': leaderboard}] if leaderboard else []), 'highlights': highlights}
+
+
+def _build_execution_deviation_section(execution_deviation: dict[str, Any]) -> dict[str, Any]:
+    row = execution_deviation.get('row') if isinstance(execution_deviation, dict) else None
     highlights = []
-    if top is not None:
-        highlights.append(f"top_account:{top.get('account')}")
-    if bottom is not None:
-        highlights.append(f"bottom_account:{bottom.get('account')}")
-    status = 'ready' if items else 'placeholder'
-    return {
-        'key': 'live_performance_summary',
-        'title': 'Live Performance Summary',
-        'status': status,
-        'items': items,
-        'highlights': highlights,
-    }
+    if isinstance(row, dict) and row.get('realized_execution_drag_usdt') is not None:
+        highlights.append(f"execution_drag_usdt:{row.get('realized_execution_drag_usdt')}")
+    return {'key': 'execution_deviation_review', 'title': 'Theoretical vs Actual Execution Deviation', 'status': execution_deviation.get('status', 'placeholder'), 'items': ([{'kind': 'execution_deviation', 'row': row}] if isinstance(row, dict) else []), 'highlights': highlights}
 
 
-def _build_execution_improvement_section(
-    performance_summary: dict[str, Any],
-) -> dict[str, Any]:
+def _build_execution_improvement_section(performance_summary: dict[str, Any]) -> dict[str, Any]:
     items: list[dict[str, Any]] = []
     highest_fee = performance_summary.get('highest_fee_drag_account') if isinstance(performance_summary, dict) else None
     highest_exposure = performance_summary.get('highest_exposure_account') if isinstance(performance_summary, dict) else None
-    bottom = performance_summary.get('bottom_account') if isinstance(performance_summary, dict) else None
+    deviation = performance_summary.get('execution_deviation') if isinstance(performance_summary, dict) else None
 
     if highest_fee is not None:
-        items.append({
-            'kind': 'improvement',
-            'name': 'trade_frequency_review',
-            'status': 'review',
-            'reason': f"highest fee drag observed on {highest_fee.get('account')}; check whether live execution frequency is too high for the promoted strategy",
-            'target_account': highest_fee.get('account'),
-            'evidence': highest_fee,
-        })
-        trade_count = float(highest_fee.get('trade_count') or 0.0)
-        if trade_count >= 5:
-            items.append({
-                'kind': 'improvement',
-                'name': 'order_timing_and_cooldown_review',
-                'status': 'review',
-                'reason': f"high fee drag with elevated trade count on {highest_fee.get('account')}; inspect timing/cooldown behavior in live execution",
-                'target_account': highest_fee.get('account'),
-                'evidence': highest_fee,
-            })
-
+        items.append({'kind': 'improvement', 'name': 'trade_frequency_review', 'status': 'review', 'reason': f"highest fee drag observed on {highest_fee.get('account')}; check whether live execution frequency is too high for the promoted strategy", 'target_account': highest_fee.get('account'), 'evidence': highest_fee})
     if highest_exposure is not None and float(highest_exposure.get('exposure_time_pct') or 0.0) >= 80.0:
-        items.append({
-            'kind': 'improvement',
-            'name': 'position_drift_review',
-            'status': 'review',
-            'reason': f"exposure stayed elevated on {highest_exposure.get('account')}; verify theoretical vs actual position drift",
-            'target_account': highest_exposure.get('account'),
-            'evidence': highest_exposure,
-        })
+        items.append({'kind': 'improvement', 'name': 'position_drift_review', 'status': 'review', 'reason': f"exposure stayed elevated on {highest_exposure.get('account')}; verify theoretical vs actual position drift", 'target_account': highest_exposure.get('account'), 'evidence': highest_exposure})
+    if isinstance(deviation, dict) and deviation.get('realized_execution_drag_usdt') is not None and float(deviation.get('realized_execution_drag_usdt') or 0.0) > 0.0:
+        items.append({'kind': 'improvement', 'name': 'execution_drag_review', 'status': 'review', 'reason': f"actual pnl trails theoretical gross pnl proxy by {deviation.get('realized_execution_drag_usdt')} USDT; inspect fees, funding, slippage, and fill quality", 'target_account': deviation.get('account'), 'evidence': deviation})
 
-    if bottom is not None:
-        pnl = _row_pnl(bottom)
-        if pnl < 0.0:
-            items.append({
-                'kind': 'improvement',
-                'name': 'negative_live_pnl_review',
-                'status': 'review',
-                'reason': f"negative pnl on reviewed live account {bottom.get('account')}; inspect whether the issue is execution drift or expected strategy drawdown",
-                'target_account': bottom.get('account'),
-                'evidence': bottom,
-            })
-        elif float(bottom.get('trade_count') or 0.0) >= 5:
-            items.append({
-                'kind': 'improvement',
-                'name': 'repeated_trade_path_review',
-                'status': 'review',
-                'reason': f"repeated trading on {bottom.get('account')}; review live order path and execution behavior",
-                'target_account': bottom.get('account'),
-                'evidence': bottom,
-            })
-
-    return {
-        'key': 'execution_improvement_review',
-        'title': 'Execution Improvement Review',
-        'status': 'ready' if items else 'placeholder',
-        'items': items,
-    }
+    return {'key': 'execution_improvement_review', 'title': 'Execution Improvement Review', 'status': 'ready' if items else 'placeholder', 'items': items}
 
 
-def _build_executive_summary(meta: dict[str, Any], performance_summary: dict[str, Any], execution_improvement_section: dict[str, Any], execution_quality: dict[str, Any]) -> dict[str, Any]:
+def _build_executive_summary(meta: dict[str, Any], performance_summary: dict[str, Any], execution_improvement_section: dict[str, Any], execution_quality: dict[str, Any], execution_deviation: dict[str, Any]) -> dict[str, Any]:
     top = performance_summary.get('top_account') if isinstance(performance_summary, dict) else None
-    bottom = performance_summary.get('bottom_account') if isinstance(performance_summary, dict) else None
     candidate_count = len(execution_improvement_section.get('items', [])) if isinstance(execution_improvement_section, dict) else 0
-
+    deviation_row = execution_deviation.get('row') if isinstance(execution_deviation, dict) else None
     bullets: list[str] = []
     if top is not None:
-        bullets.append(f"Top account: {top.get('account')} ({top.get('pnl_usdt')} USDT pnl)")
-    if bottom is not None:
-        bullets.append(f"Bottom account: {bottom.get('account')} ({bottom.get('pnl_usdt')} USDT pnl)")
+        bullets.append(f"Actual live pnl: {top.get('pnl_usdt')} USDT")
+    if isinstance(deviation_row, dict):
+        bullets.append(f"Theoretical gross pnl proxy: {deviation_row.get('theoretical_gross_pnl_proxy_usdt')} USDT")
+        bullets.append(f"Execution drag (fees/funding/slippage proxy): {deviation_row.get('realized_execution_drag_usdt')} USDT")
     if candidate_count:
         bullets.append(f"Execution improvement items flagged: {candidate_count}")
     if execution_quality.get('status') == 'ready':
-        bullets.append(
-            f"Clean vs excluded trades: {execution_quality.get('clean_trade_count', 0)} clean / {execution_quality.get('excluded_trade_count', 0)} excluded"
-        )
+        bullets.append(f"Clean vs excluded trades: {execution_quality.get('clean_trade_count', 0)} clean / {execution_quality.get('excluded_trade_count', 0)} excluded")
         if execution_quality.get('excluded_trade_count', 0):
             bullets.append(f"Excluded execution-impact pnl: {execution_quality.get('excluded_pnl_usdt')} USDT")
-
-    return {
-        'label': meta.get('label'),
-        'cadence': meta.get('cadence'),
-        'window_start': meta.get('window_start'),
-        'window_end': meta.get('window_end'),
-        'bullets': bullets,
-        'status': 'ready' if bullets else 'placeholder',
-    }
+    return {'label': meta.get('label'), 'cadence': meta.get('cadence'), 'window_start': meta.get('window_start'), 'window_end': meta.get('window_end'), 'bullets': bullets, 'status': 'ready' if bullets else 'placeholder'}
 
 
 def _build_recommended_actions(execution_improvement_section: dict[str, Any]) -> list[dict[str, Any]]:
-    actions: list[dict[str, Any]] = []
-    for item in execution_improvement_section.get('items', []) if isinstance(execution_improvement_section, dict) else []:
-        if item.get('kind') != 'improvement':
-            continue
-        actions.append({
-            'title': f"Review {item.get('name')}",
-            'priority': item.get('status') or 'review',
-            'target_account': item.get('target_account'),
-            'reason': item.get('reason'),
-        })
-    return actions
+    return [{'title': f"Review {item.get('name')}", 'priority': item.get('status') or 'review', 'target_account': item.get('target_account'), 'reason': item.get('reason')} for item in execution_improvement_section.get('items', []) if item.get('kind') == 'improvement'] if isinstance(execution_improvement_section, dict) else []
 
 
 def _build_narrative_blocks(executive_summary: dict[str, Any], sections: list[dict[str, Any]]) -> list[dict[str, Any]]:
     blocks: list[dict[str, Any]] = []
     if executive_summary.get('bullets'):
-        blocks.append({
-            'key': 'executive_summary',
-            'title': 'Executive Summary',
-            'lines': executive_summary['bullets'],
-        })
+        blocks.append({'key': 'executive_summary', 'title': 'Executive Summary', 'lines': executive_summary['bullets']})
     for section in sections:
         key = section.get('key')
         if key == 'live_performance_summary' and section.get('status') == 'ready':
             leaderboard = next((item.get('rows') for item in section.get('items', []) if item.get('kind') == 'leaderboard'), [])
-            lines = [
-                f"{idx + 1}. {row.get('account')} pnl={row.get('pnl_usdt')} fee={row.get('fee_usdt')} exposure={row.get('exposure_time_pct')}"
-                for idx, row in enumerate(leaderboard[:3])
-            ]
+            lines = [f"actual pnl={row.get('pnl_usdt')} fee={row.get('fee_usdt')} funding={row.get('funding_usdt')} exposure={row.get('exposure_time_pct')}" for row in leaderboard[:1]]
             blocks.append({'key': key, 'title': section.get('title'), 'lines': lines})
+        elif key == 'execution_deviation_review' and section.get('status') == 'ready':
+            row = next((item.get('row') for item in section.get('items', []) if item.get('kind') == 'execution_deviation'), None)
+            if isinstance(row, dict):
+                blocks.append({'key': key, 'title': section.get('title'), 'lines': [f"theoretical gross pnl proxy={row.get('theoretical_gross_pnl_proxy_usdt')}", f"actual pnl={row.get('actual_pnl_usdt')}", f"execution drag={row.get('realized_execution_drag_usdt')}", f"fee={row.get('fee_usdt')} funding={row.get('funding_usdt')} trade_count={row.get('trade_count')}"]})
         elif key == 'execution_improvement_review' and section.get('status') == 'ready':
-            lines = [
-                f"{item.get('name')} [{item.get('status')}]: {item.get('reason')}"
-                for item in section.get('items', [])
-                if item.get('kind') == 'improvement'
-            ]
-            blocks.append({'key': key, 'title': section.get('title'), 'lines': lines})
+            blocks.append({'key': key, 'title': section.get('title'), 'lines': [f"{item.get('name')} [{item.get('status')}]: {item.get('reason')}" for item in section.get('items', []) if item.get('kind') == 'improvement']})
         elif key == 'execution_quality' and section.get('status') == 'ready':
             lines = []
             for item in section.get('items', []):
                 if item.get('kind') == 'anomaly_breakdown':
                     for row in item.get('rows', [])[:5]:
-                        lines.append(
-                            f"anomaly {row.get('reason')}: count={row.get('count')} pnl={row.get('pnl_usdt')} accounts={','.join(row.get('accounts', []))}"
-                        )
+                        lines.append(f"anomaly {row.get('reason')}: count={row.get('count')} pnl={row.get('pnl_usdt')} accounts={','.join(row.get('accounts', []))}")
                 elif item.get('kind') == 'excluded_reasons':
                     for row in item.get('rows', [])[:5]:
                         lines.append(f"excluded_reason {row.get('reason')}: {row.get('count')}")
-                elif item.get('kind') == 'excluded_samples':
-                    for row in item.get('rows', [])[:3]:
-                        lines.append(f"excluded_sample {row.get('account')}: reason={row.get('reason')} pnl={row.get('pnl_usdt')}")
-            blocks.append({'key': key, 'title': section.get('title'), 'lines': lines})
-        elif key == 'regime_local_review' and section.get('status') == 'ready':
-            lines = []
-            for item in section.get('items', []):
-                if item.get('kind') == 'regime_rows':
-                    for row in item.get('rows', [])[:6]:
-                        lines.append(
-                            f"regime {row.get('regime')}: cycles={row.get('total_cycles')} clean={row.get('clean_cycles')} excluded={row.get('excluded_cycles')} clean_pnl={row.get('clean_pnl_usdt')} dominant_route={row.get('dominant_route_family')}"
-                        )
-            blocks.append({'key': key, 'title': section.get('title'), 'lines': lines})
-        elif key == 'mapping_validity_review' and section.get('status') == 'ready':
-            lines = []
-            for item in section.get('items', []):
-                if item.get('kind') == 'mapping_rows':
-                    for row in item.get('rows', [])[:6]:
-                        lines.append(
-                            f"mapping {row.get('regime')}: expected={row.get('expected_account')} dominant={row.get('dominant_route')} matched={row.get('matched_cycles')}/{row.get('total_cycles')} ({row.get('match_rate_pct')}%)"
-                        )
-            blocks.append({'key': key, 'title': section.get('title'), 'lines': lines})
-        elif key == 'overlap_review' and section.get('status') == 'ready':
-            lines = []
-            for item in section.get('items', []):
-                if item.get('kind') == 'overlap_rows':
-                    for row in item.get('rows', [])[:6]:
-                        lines.append(
-                            f"overlap {row.get('final_regime')}: top={row.get('top_regime')}({row.get('top_score')}) runner_up={row.get('runner_up_regime')}({row.get('runner_up_score')}) gap={row.get('score_gap')}"
-                        )
             blocks.append({'key': key, 'title': section.get('title'), 'lines': lines})
     return blocks
 
@@ -629,16 +438,10 @@ def _build_narrative_blocks(executive_summary: dict[str, Any], sections: list[di
 def build_report_scaffold(window: ReviewWindow, metrics_by_account: dict[str, dict[str, Any]] | None = None, history_path: str | None = None) -> dict[str, Any]:
     plan = build_review_plan(window)
     cadence = plan['cadence']
-
     aggregated_metrics = metrics_by_account
     history_rows: list[dict[str, Any]] = []
     if history_path is not None:
-        aggregated_metrics = aggregate_from_execution_history(
-            history_path,
-            metrics_by_account,
-            window_start=window.window_start,
-            window_end=window.window_end,
-        )
+        aggregated_metrics = aggregate_from_execution_history(history_path, metrics_by_account, window_start=window.window_start, window_end=window.window_end)
         history_rows = _load_history_rows(history_path)
     performance_snapshot = build_performance_snapshot(aggregated_metrics)
     performance_summary = _build_performance_summary(performance_snapshot)
@@ -646,69 +449,14 @@ def build_report_scaffold(window: ReviewWindow, metrics_by_account: dict[str, di
     mapping_validity = _build_mapping_validity_summary(history_rows)
     overlap = _build_overlap_summary(history_rows)
     execution_quality = _build_execution_quality_summary(history_rows)
-
+    execution_deviation = _build_execution_deviation_summary(performance_summary)
     execution_improvement_section = _build_execution_improvement_section(performance_summary)
-    sections = [
-        {
-            'key': 'market_regime_summary',
-            'title': 'Market Regime Summary',
-            'status': 'placeholder',
-            'items': [],
-        },
-        _build_live_performance_section(performance_summary),
-        _build_regime_local_section(regime_local),
-        _build_mapping_validity_section(mapping_validity),
-        _build_overlap_section(overlap),
-        _build_execution_quality_section(execution_quality),
-        execution_improvement_section,
-    ]
-
+    sections = [{'key': 'market_regime_summary', 'title': 'Market Regime Summary', 'status': 'placeholder', 'items': []}, _build_live_performance_section(performance_summary), _build_execution_deviation_section(execution_deviation), _build_regime_local_section(regime_local), _build_mapping_validity_section(mapping_validity), _build_overlap_section(overlap), _build_execution_quality_section(execution_quality), execution_improvement_section]
     if cadence == 'quarterly':
-        sections.append(
-            {
-                'key': 'structural_review',
-                'title': 'Structural Review',
-                'status': 'placeholder',
-                'items': [],
-            }
-        )
-
-    meta = {
-        'cadence': cadence,
-        'label': plan['label'],
-        'window_start': plan['window_start'],
-        'window_end': plan['window_end'],
-        'generated_at': datetime.now(UTC).isoformat(),
-        'focus_areas': plan['focus_areas'],
-        'adjustment_policy': plan['adjustment_policy'],
-    }
-    executive_summary = _build_executive_summary(meta, performance_summary, execution_improvement_section, execution_quality)
+        sections.append({'key': 'structural_review', 'title': 'Structural Review', 'status': 'placeholder', 'items': []})
+    meta = {'cadence': cadence, 'label': plan['label'], 'window_start': plan['window_start'], 'window_end': plan['window_end'], 'generated_at': datetime.now(UTC).isoformat(), 'focus_areas': plan['focus_areas'], 'adjustment_policy': plan['adjustment_policy']}
+    executive_summary = _build_executive_summary(meta, performance_summary, execution_improvement_section, execution_quality, execution_deviation)
     recommended_actions = _build_recommended_actions(execution_improvement_section)
     narrative_blocks = _build_narrative_blocks(executive_summary, sections)
-
-    report = ReviewReport(
-        meta=meta,
-        sections=sections,
-        metrics={
-            'performance': performance_snapshot,
-            'performance_summary': performance_summary,
-            'regime_local': regime_local,
-            'mapping_validity': mapping_validity,
-            'overlap': overlap,
-            'execution_quality': execution_quality,
-            'risk': [],
-            'fees': [],
-            'regime_quality': [],
-        },
-        parameter_candidates={
-            'auto_candidate_params': [],
-            'discuss_first_params': [],
-            'structural_params': [],
-        },
-        decisions=[],
-        notes=plan['notes'],
-        executive_summary=executive_summary,
-        recommended_actions=recommended_actions,
-        narrative_blocks=narrative_blocks,
-    )
+    report = ReviewReport(meta=meta, sections=sections, metrics={'performance': performance_snapshot, 'performance_summary': performance_summary, 'execution_deviation': execution_deviation, 'regime_local': regime_local, 'mapping_validity': mapping_validity, 'overlap': overlap, 'execution_quality': execution_quality, 'risk': [], 'fees': [], 'regime_quality': []}, parameter_candidates={'auto_candidate_params': [], 'discuss_first_params': [], 'structural_params': []}, decisions=[], notes=plan['notes'], executive_summary=executive_summary, recommended_actions=recommended_actions, narrative_blocks=narrative_blocks)
     return asdict(report)
