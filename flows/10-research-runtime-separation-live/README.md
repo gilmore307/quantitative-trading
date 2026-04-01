@@ -10,19 +10,20 @@ This flow step collects the live-only runtime pieces that must stay operationall
 
 ## Current contents
 
-- `src/runners/realtime_engine.py`
-- `src/runners/minute_engine.py`
-- `src/runners/shock_monitor.py`
-- `src/runners/trade_alert_watcher.py`
-- `src/runners/discord_notifier.py`
-- `src/runtime/business_time.py`
-- `src/runtime/bucket_state.py`
+### engines
+- `engines/realtime_engine.py`
+- `engines/minute_engine.py`
 
-## Likely next additions
+### monitors
+- `monitors/shock_monitor.py`
+- `monitors/trade_alert_watcher.py`
 
-- any remaining live-only loop helpers
-- notifier / alert support code still outside this flow step
-- runtime-only scheduling helpers
+### notifications
+- `notifications/discord_notifier.py`
+
+### runtime-helpers
+- `runtime-helpers/business_time.py`
+- `runtime-helpers/bucket_state.py`
 
 ## Expected future home
 

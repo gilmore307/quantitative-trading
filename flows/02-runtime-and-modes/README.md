@@ -11,16 +11,16 @@ This flow step covers the always-on live runtime state.
 
 ## Current contents
 
-- `src/runners/trade_daemon.py`
-- `src/runtime/mode.py`
-- `src/runtime/mode_policy.py`
-- `src/runtime/workflow.py`
-- `src/runtime/workflows.py`
+### daemon
+- `daemon/trade_daemon.py`
 
-## Likely next additions
+### mode
+- `mode/mode.py`
+- `mode/mode_policy.py`
 
-- any remaining runtime-mode policy helpers
-- daemon-adjacent runtime orchestration helpers still left outside this flow step
+### workflows
+- `workflows/workflow.py`
+- `workflows/workflows.py`
 
 ## Expected future home
 

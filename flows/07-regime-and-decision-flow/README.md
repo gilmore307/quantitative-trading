@@ -10,14 +10,12 @@ This flow step covers the decision path between current market interpretation, a
 
 ## Current contents
 
-- `src/runners/regime_runner.py`
-- `src/execution/policy.py`
-- `src/execution/confirm.py`
+### regime
+- `regime/regime_runner.py`
 
-## Likely next additions
-
-- more decision-trace helpers if later separated out of the execution pipeline
-- any remaining regime-to-execution bridge helpers that are clearly part of live runtime
+### decision
+- `decision/policy.py`
+- `decision/confirm.py`
 
 ## Expected future home
 
