@@ -1,0 +1,39 @@
+# Trade Review - smoke
+
+- Cadence: weekly
+- Window: 2026-03-25T17:48:22.891337+00:00 -> 2026-04-01T17:48:22.891345+00:00
+- Generated at: 2026-04-01T17:48:22.894473+00:00
+
+## Executive Summary
+- Clean vs excluded trades: 0 clean / 1 excluded
+- Excluded execution-impact pnl: 0.0 USDT
+
+## Recommended Actions
+- None
+
+## Executive Summary
+- Clean vs excluded trades: 0 clean / 1 excluded
+- Excluded execution-impact pnl: 0.0 USDT
+
+## Regime-Local Review
+- regime idle: cycles=1 clean=0 excluded=1 clean_pnl=0.0 dominant_route=none
+
+## Mapping Validity Review
+- mapping idle: expected=None dominant=none matched=1/1 (100.0%)
+
+## Execution Quality
+- anomaly receipt_not_accepted: count=1 pnl=0.0 accounts=
+- excluded_reason receipt_not_accepted: 1
+- excluded_sample None: reason=receipt_not_accepted pnl=0.0
+
+## Attribution Confidence
+- No high-confidence attribution rows
+
+## Section Status
+- Market Regime Summary: placeholder
+- Live Performance Summary: placeholder
+- Regime-Local Review: ready
+- Mapping Validity Review: ready
+- Regime Overlap Review: placeholder
+- Execution Quality: ready
+- Execution Improvement Review: placeholder

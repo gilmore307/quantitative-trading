@@ -9,7 +9,7 @@ from src.review.report import build_report_scaffold
 from src.review.framework import ReviewWindow
 
 
-DEFAULT_REPORTS_DIR = Path('/root/.openclaw/workspace/projects/crypto-trading/reports/trade-review')
+DEFAULT_REPORTS_DIR = Path('/root/.openclaw/workspace/projects/quantitative-trading/reports/trade-review')
 
 
 def _slug(label: str) -> str:
@@ -121,13 +121,12 @@ def _update_report_index(out_root: Path, report: dict[str, Any], json_path: Path
 def export_report_artifacts(
     window: ReviewWindow,
     *,
-    compare_snapshot: dict[str, Any] | None = None,
     metrics_by_account: dict[str, dict[str, Any]] | None = None,
     history_path: str | None = None,
     out_dir: str | Path | None = None,
     generated_at: datetime | None = None,
 ) -> dict[str, Any]:
-    report = build_report_scaffold(window, compare_snapshot=compare_snapshot, metrics_by_account=metrics_by_account, history_path=history_path)
+    report = build_report_scaffold(window, metrics_by_account=metrics_by_account, history_path=history_path)
     out_root = Path(out_dir) if out_dir is not None else DEFAULT_REPORTS_DIR
     out_root.mkdir(parents=True, exist_ok=True)
 

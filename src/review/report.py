@@ -38,7 +38,6 @@ def _row_funding(row: dict[str, Any]) -> float:
 class ReviewReport:
     meta: dict[str, Any]
     sections: list[dict[str, Any]]
-    compare_snapshot: dict[str, Any] | None
     metrics: dict[str, Any]
     parameter_candidates: dict[str, list[dict[str, Any]]]
     decisions: list[dict[str, Any]]
@@ -113,11 +112,6 @@ def _build_performance_summary(performance_snapshot: dict[str, Any]) -> dict[str
     if exposure_rows:
         highest_exposure = slim(max(exposure_rows, key=lambda row: float(row.get('exposure_time_pct') or 0.0)))
 
-    router_row = next((row for row in ranked if row.get('account') == 'router_composite'), None)
-    non_router = [row for row in ranked if row.get('account') not in {'router_composite', 'flat_compare'}]
-    best_strategy = max(non_router, key=_score_row) if non_router else None
-    flat_compare = next((row for row in ranked if row.get('account') == 'flat_compare'), None)
-
     insights: list[str] = []
     if top is not None:
         insights.append(f"top_account:{top['account']}")
@@ -127,20 +121,9 @@ def _build_performance_summary(performance_snapshot: dict[str, Any]) -> dict[str
         insights.append(f"high_exposure:{highest_exposure['account']}")
     if bottom is not None and _row_pnl(bottom) < 0.0:
         insights.append(f"negative_pnl:{bottom['account']}")
-    if router_row is not None and best_strategy is not None:
-        router_pnl = _row_pnl(router_row)
-        best_pnl = _row_pnl(best_strategy)
-        relation = 'outperformed' if router_pnl > best_pnl else 'underperformed' if router_pnl < best_pnl else 'matched'
-        insights.append(f"router_vs_best_strategy:{relation}:{best_strategy.get('account')}")
     high_confidence_accounts = [row.get('account') for row in leaderboard if row.get('attribution_confidence') == 'high']
     if high_confidence_accounts:
         insights.append(f"high_confidence_attribution:{','.join(str(v) for v in high_confidence_accounts)}")
-
-    if router_row is not None and flat_compare is not None:
-        router_pnl = _row_pnl(router_row)
-        flat_pnl = _row_pnl(flat_compare)
-        relation = 'ahead' if router_pnl > flat_pnl else 'behind' if router_pnl < flat_pnl else 'matched'
-        insights.append(f"router_vs_flat_compare:{relation}")
 
     return {
         'leaderboard': leaderboard,
@@ -148,18 +131,6 @@ def _build_performance_summary(performance_snapshot: dict[str, Any]) -> dict[str
         'bottom_account': bottom,
         'highest_fee_drag_account': highest_fee,
         'highest_exposure_account': highest_exposure,
-        'router_vs_best_strategy': None if router_row is None or best_strategy is None else {
-            'router_account': 'router_composite',
-            'best_strategy_account': best_strategy.get('account'),
-            'router_pnl_usdt': _row_pnl(router_row),
-            'best_strategy_pnl_usdt': _row_pnl(best_strategy),
-        },
-        'router_vs_flat_compare': None if router_row is None or flat_compare is None else {
-            'router_account': 'router_composite',
-            'flat_compare_account': 'flat_compare',
-            'router_pnl_usdt': _row_pnl(router_row),
-            'flat_compare_pnl_usdt': _row_pnl(flat_compare),
-        },
         'insights': insights,
     }
 
@@ -311,114 +282,6 @@ def _build_mapping_validity_summary(history_rows: list[dict[str, Any]]) -> dict[
     }
 
 
-def _build_strategy_activity_summary(history_rows: list[dict[str, Any]]) -> dict[str, Any]:
-    buckets: dict[str, dict[str, Any]] = {}
-    matrix: dict[str, dict[str, dict[str, int]]] = {}
-    for row in history_rows:
-        shadow_plans = row.get('shadow_plans') if isinstance(row.get('shadow_plans'), dict) else {}
-        if not shadow_plans:
-            continue
-        final_regime = row.get('final_regime') or ((row.get('summary') or {}).get('regime') if isinstance(row.get('summary'), dict) else None)
-        regime_key = str(final_regime or 'unknown')
-        for strategy_name, plan in shadow_plans.items():
-            if not isinstance(plan, dict):
-                continue
-            bucket = buckets.setdefault(str(strategy_name), {
-                'strategy_name': str(strategy_name),
-                'total_cycles': 0,
-                'watch_count': 0,
-                'arm_count': 0,
-                'enter_count': 0,
-                'by_regime': {},
-            })
-            bucket['total_cycles'] += 1
-            action = str(plan.get('action') or 'hold')
-            if action in {'watch', 'hold'}:
-                bucket['watch_count'] += 1
-            elif action == 'arm':
-                bucket['arm_count'] += 1
-            elif action == 'enter':
-                bucket['enter_count'] += 1
-            regime_bucket = bucket['by_regime'].setdefault(regime_key, {'watch': 0, 'arm': 0, 'enter': 0})
-            matrix_bucket = matrix.setdefault(str(strategy_name), {}).setdefault(regime_key, {'watch': 0, 'arm': 0, 'enter': 0})
-            if action in {'watch', 'hold'}:
-                regime_bucket['watch'] += 1
-                matrix_bucket['watch'] += 1
-            elif action == 'arm':
-                regime_bucket['arm'] += 1
-                matrix_bucket['arm'] += 1
-            elif action == 'enter':
-                regime_bucket['enter'] += 1
-                matrix_bucket['enter'] += 1
-    rows = []
-    for strategy_name, bucket in buckets.items():
-        rows.append({
-            'strategy_name': strategy_name,
-            'total_cycles': bucket['total_cycles'],
-            'watch_count': bucket['watch_count'],
-            'arm_count': bucket['arm_count'],
-            'enter_count': bucket['enter_count'],
-            'activity_rate_pct': 0.0 if bucket['total_cycles'] <= 0 else round(((bucket['arm_count'] + bucket['enter_count']) / bucket['total_cycles']) * 100.0, 4),
-            'by_regime': bucket['by_regime'],
-        })
-    rows.sort(key=lambda item: (-int(item['enter_count']), -int(item['arm_count']), item['strategy_name']))
-    return {
-        'rows': rows,
-        'matrix': matrix,
-        'status': 'ready' if rows else 'placeholder',
-    }
-
-
-def _build_shadow_decision_summary(history_rows: list[dict[str, Any]]) -> dict[str, Any]:
-    buckets: dict[str, dict[str, Any]] = {}
-    for row in history_rows:
-        shadow_plans = row.get('shadow_plans') if isinstance(row.get('shadow_plans'), dict) else {}
-        if not shadow_plans:
-            continue
-        summary = row.get('summary') if isinstance(row.get('summary'), dict) else row
-        regime = str(summary.get('regime') or row.get('final_regime') or 'unknown')
-        selected_family = str(summary.get('route_strategy_family') or 'none')
-        bucket = buckets.setdefault(regime, {
-            'regime': regime,
-            'selected_family': selected_family,
-            'enter_counts': {},
-            'arm_counts': {},
-            'total_cycles': 0,
-        })
-        bucket['total_cycles'] += 1
-        for strategy_name, plan in shadow_plans.items():
-            if not isinstance(plan, dict):
-                continue
-            action = str(plan.get('action') or 'hold')
-            if action == 'enter':
-                bucket['enter_counts'][strategy_name] = bucket['enter_counts'].get(strategy_name, 0) + 1
-            elif action == 'arm':
-                bucket['arm_counts'][strategy_name] = bucket['arm_counts'].get(strategy_name, 0) + 1
-    rows = []
-    for regime, bucket in buckets.items():
-        def _top(counter: dict[str, int]) -> list[dict[str, Any]]:
-            return [
-                {'strategy_name': name, 'count': count}
-                for name, count in sorted(counter.items(), key=lambda item: (-item[1], item[0]))[:5]
-            ]
-        enter_top = _top(bucket['enter_counts'])
-        arm_top = _top(bucket['arm_counts'])
-        rows.append({
-            'regime': regime,
-            'selected_family': bucket['selected_family'],
-            'total_cycles': bucket['total_cycles'],
-            'enter_top': enter_top,
-            'arm_top': arm_top,
-            'selected_family_enter_count': bucket['enter_counts'].get(bucket['selected_family'], 0),
-            'selected_family_arm_count': bucket['arm_counts'].get(bucket['selected_family'], 0),
-        })
-    rows.sort(key=lambda item: (-int(item['total_cycles']), item['regime']))
-    return {
-        'rows': rows,
-        'status': 'ready' if rows else 'placeholder',
-    }
-
-
 def _build_execution_quality_summary(history_rows: list[dict[str, Any]]) -> dict[str, Any]:
     clean = 0
     excluded = 0
@@ -540,38 +403,6 @@ def _build_mapping_validity_section(mapping_validity: dict[str, Any]) -> dict[st
     }
 
 
-def _build_strategy_activity_section(activity: dict[str, Any]) -> dict[str, Any]:
-    rows = activity.get('rows', []) if isinstance(activity, dict) else []
-    items = [{'kind': 'activity_rows', 'rows': rows}] if rows else []
-    highlights = []
-    for row in rows[:6]:
-        highlights.append(f"{row.get('strategy_name')}: enter={row.get('enter_count')} arm={row.get('arm_count')} watch={row.get('watch_count')} activity={row.get('activity_rate_pct')}%")
-    return {
-        'key': 'strategy_activity_review',
-        'title': 'Strategy Activity Review',
-        'status': activity.get('status', 'placeholder'),
-        'items': items,
-        'highlights': highlights,
-    }
-
-
-def _build_shadow_decision_section(shadow: dict[str, Any]) -> dict[str, Any]:
-    rows = shadow.get('rows', []) if isinstance(shadow, dict) else []
-    items = [{'kind': 'shadow_rows', 'rows': rows}] if rows else []
-    highlights = []
-    for row in rows[:6]:
-        enter_top = row.get('enter_top') or []
-        leader = enter_top[0]['strategy_name'] if enter_top else 'none'
-        highlights.append(f"{row.get('regime')}: selected={row.get('selected_family')} top_enter={leader}")
-    return {
-        'key': 'shadow_decision_review',
-        'title': 'Shadow Decision Review',
-        'status': shadow.get('status', 'placeholder'),
-        'items': items,
-        'highlights': highlights,
-    }
-
-
 def _build_execution_quality_section(execution_quality: dict[str, Any]) -> dict[str, Any]:
     items = []
     if execution_quality.get('anomaly_breakdown'):
@@ -594,14 +425,11 @@ def _build_execution_quality_section(execution_quality: dict[str, Any]) -> dict[
     }
 
 
-def _build_live_performance_section(compare_snapshot: dict[str, Any] | None, performance_summary: dict[str, Any]) -> dict[str, Any]:
+def _build_live_performance_section(performance_summary: dict[str, Any]) -> dict[str, Any]:
     leaderboard = performance_summary.get('leaderboard', []) if isinstance(performance_summary, dict) else []
-    compare_rows = [] if compare_snapshot is None else compare_snapshot.get('accounts', []) or []
     items: list[dict[str, Any]] = []
     if leaderboard:
         items.append({'kind': 'leaderboard', 'rows': leaderboard})
-    if compare_rows:
-        items.append({'kind': 'state_snapshot', 'rows': compare_rows})
     top = performance_summary.get('top_account') if isinstance(performance_summary, dict) else None
     bottom = performance_summary.get('bottom_account') if isinstance(performance_summary, dict) else None
     highlights = []
@@ -619,25 +447,6 @@ def _build_live_performance_section(compare_snapshot: dict[str, Any] | None, per
     }
 
 
-def _build_execution_deviation_section(compare_snapshot: dict[str, Any] | None, performance_summary: dict[str, Any]) -> dict[str, Any]:
-    items: list[dict[str, Any]] = []
-    highlights = list((compare_snapshot or {}).get('highlights', []))
-    vs_best = performance_summary.get('router_vs_best_strategy') if isinstance(performance_summary, dict) else None
-    vs_flat = performance_summary.get('router_vs_flat_compare') if isinstance(performance_summary, dict) else None
-    if vs_best is not None:
-        items.append({'kind': 'router_vs_best_strategy', 'row': vs_best})
-    if vs_flat is not None:
-        items.append({'kind': 'router_vs_flat_compare', 'row': vs_flat})
-    status = 'ready' if items or highlights else 'placeholder'
-    return {
-        'key': 'execution_deviation_review',
-        'title': 'Execution Deviation Review',
-        'status': status,
-        'items': items,
-        'highlights': highlights,
-    }
-
-
 def _build_execution_improvement_section(
     performance_summary: dict[str, Any],
 ) -> dict[str, Any]:
@@ -645,7 +454,6 @@ def _build_execution_improvement_section(
     highest_fee = performance_summary.get('highest_fee_drag_account') if isinstance(performance_summary, dict) else None
     highest_exposure = performance_summary.get('highest_exposure_account') if isinstance(performance_summary, dict) else None
     bottom = performance_summary.get('bottom_account') if isinstance(performance_summary, dict) else None
-    insights = performance_summary.get('insights', []) if isinstance(performance_summary, dict) else []
 
     if highest_fee is not None:
         items.append({
@@ -698,16 +506,6 @@ def _build_execution_improvement_section(
                 'evidence': bottom,
             })
 
-    for insight in insights:
-        if insight.startswith('router_vs_best_strategy:underperformed:'):
-            items.append({
-                'kind': 'improvement',
-                'name': 'strategy_upgrade_calibrate_check',
-                'status': 'upgrade_event_only',
-                'reason': insight,
-            })
-            break
-
     return {
         'key': 'execution_improvement_review',
         'title': 'Execution Improvement Review',
@@ -719,8 +517,6 @@ def _build_execution_improvement_section(
 def _build_executive_summary(meta: dict[str, Any], performance_summary: dict[str, Any], execution_improvement_section: dict[str, Any], execution_quality: dict[str, Any]) -> dict[str, Any]:
     top = performance_summary.get('top_account') if isinstance(performance_summary, dict) else None
     bottom = performance_summary.get('bottom_account') if isinstance(performance_summary, dict) else None
-    router_vs_best = performance_summary.get('router_vs_best_strategy') if isinstance(performance_summary, dict) else None
-    router_vs_flat = performance_summary.get('router_vs_flat_compare') if isinstance(performance_summary, dict) else None
     candidate_count = len(execution_improvement_section.get('items', [])) if isinstance(execution_improvement_section, dict) else 0
 
     bullets: list[str] = []
@@ -728,14 +524,6 @@ def _build_executive_summary(meta: dict[str, Any], performance_summary: dict[str
         bullets.append(f"Top account: {top.get('account')} ({top.get('pnl_usdt')} USDT pnl)")
     if bottom is not None:
         bullets.append(f"Bottom account: {bottom.get('account')} ({bottom.get('pnl_usdt')} USDT pnl)")
-    if router_vs_best is not None:
-        bullets.append(
-            f"Router composite vs best strategy: {router_vs_best.get('router_pnl_usdt')} vs {router_vs_best.get('best_strategy_pnl_usdt')} USDT"
-        )
-    if router_vs_flat is not None:
-        bullets.append(
-            f"Router composite vs flat compare: {router_vs_flat.get('router_pnl_usdt')} vs {router_vs_flat.get('flat_compare_pnl_usdt')} USDT"
-        )
     if candidate_count:
         bullets.append(f"Execution improvement items flagged: {candidate_count}")
     if execution_quality.get('status') == 'ready':
@@ -786,19 +574,6 @@ def _build_narrative_blocks(executive_summary: dict[str, Any], sections: list[di
                 for idx, row in enumerate(leaderboard[:3])
             ]
             blocks.append({'key': key, 'title': section.get('title'), 'lines': lines})
-        elif key == 'execution_deviation_review' and section.get('status') == 'ready':
-            lines = []
-            for item in section.get('items', []):
-                row = item.get('row') or {}
-                if item.get('kind') == 'router_vs_best_strategy':
-                    lines.append(
-                        f"Router composite vs best strategy {row.get('best_strategy_account')}: {row.get('router_pnl_usdt')} vs {row.get('best_strategy_pnl_usdt')} USDT"
-                    )
-                elif item.get('kind') == 'router_vs_flat_compare':
-                    lines.append(
-                        f"Router composite vs flat compare: {row.get('router_pnl_usdt')} vs {row.get('flat_compare_pnl_usdt')} USDT"
-                    )
-            blocks.append({'key': key, 'title': section.get('title'), 'lines': lines})
         elif key == 'execution_improvement_review' and section.get('status') == 'ready':
             lines = [
                 f"{item.get('name')} [{item.get('status')}]: {item.get('reason')}"
@@ -848,30 +623,10 @@ def _build_narrative_blocks(executive_summary: dict[str, Any], sections: list[di
                             f"overlap {row.get('final_regime')}: top={row.get('top_regime')}({row.get('top_score')}) runner_up={row.get('runner_up_regime')}({row.get('runner_up_score')}) gap={row.get('score_gap')}"
                         )
             blocks.append({'key': key, 'title': section.get('title'), 'lines': lines})
-        elif key == 'strategy_activity_review' and section.get('status') == 'ready':
-            lines = []
-            for item in section.get('items', []):
-                if item.get('kind') == 'activity_rows':
-                    for row in item.get('rows', [])[:6]:
-                        lines.append(
-                            f"activity {row.get('strategy_name')}: enter={row.get('enter_count')} arm={row.get('arm_count')} watch={row.get('watch_count')} activity={row.get('activity_rate_pct')}%"
-                        )
-            blocks.append({'key': key, 'title': section.get('title'), 'lines': lines})
-        elif key == 'shadow_decision_review' and section.get('status') == 'ready':
-            lines = []
-            for item in section.get('items', []):
-                if item.get('kind') == 'shadow_rows':
-                    for row in item.get('rows', [])[:6]:
-                        enter_top = ','.join(f"{x.get('strategy_name')}:{x.get('count')}" for x in row.get('enter_top', []))
-                        arm_top = ','.join(f"{x.get('strategy_name')}:{x.get('count')}" for x in row.get('arm_top', []))
-                        lines.append(
-                            f"shadow {row.get('regime')}: selected={row.get('selected_family')} enter_top=[{enter_top}] arm_top=[{arm_top}]"
-                        )
-            blocks.append({'key': key, 'title': section.get('title'), 'lines': lines})
     return blocks
 
 
-def build_report_scaffold(window: ReviewWindow, compare_snapshot: dict[str, Any] | None = None, metrics_by_account: dict[str, dict[str, Any]] | None = None, history_path: str | None = None) -> dict[str, Any]:
+def build_report_scaffold(window: ReviewWindow, metrics_by_account: dict[str, dict[str, Any]] | None = None, history_path: str | None = None) -> dict[str, Any]:
     plan = build_review_plan(window)
     cadence = plan['cadence']
 
@@ -890,8 +645,6 @@ def build_report_scaffold(window: ReviewWindow, compare_snapshot: dict[str, Any]
     regime_local = _build_regime_local_summary(history_rows)
     mapping_validity = _build_mapping_validity_summary(history_rows)
     overlap = _build_overlap_summary(history_rows)
-    strategy_activity = _build_strategy_activity_summary(history_rows)
-    shadow_decision = _build_shadow_decision_summary(history_rows)
     execution_quality = _build_execution_quality_summary(history_rows)
 
     execution_improvement_section = _build_execution_improvement_section(performance_summary)
@@ -902,13 +655,10 @@ def build_report_scaffold(window: ReviewWindow, compare_snapshot: dict[str, Any]
             'status': 'placeholder',
             'items': [],
         },
-        _build_live_performance_section(compare_snapshot, performance_summary),
-        _build_execution_deviation_section(compare_snapshot, performance_summary),
+        _build_live_performance_section(performance_summary),
         _build_regime_local_section(regime_local),
         _build_mapping_validity_section(mapping_validity),
         _build_overlap_section(overlap),
-        _build_strategy_activity_section(strategy_activity),
-        _build_shadow_decision_section(shadow_decision),
         _build_execution_quality_section(execution_quality),
         execution_improvement_section,
     ]
@@ -939,15 +689,12 @@ def build_report_scaffold(window: ReviewWindow, compare_snapshot: dict[str, Any]
     report = ReviewReport(
         meta=meta,
         sections=sections,
-        compare_snapshot=compare_snapshot,
         metrics={
             'performance': performance_snapshot,
             'performance_summary': performance_summary,
             'regime_local': regime_local,
             'mapping_validity': mapping_validity,
             'overlap': overlap,
-            'strategy_activity': strategy_activity,
-            'shadow_decision': shadow_decision,
             'execution_quality': execution_quality,
             'risk': [],
             'fees': [],

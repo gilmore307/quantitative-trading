@@ -1,0 +1,20 @@
+{
+  "reports": [
+    {
+      "label": "smoke",
+      "cadence": "weekly",
+      "generated_at": "2026-04-01T17:48:22.894473+00:00",
+      "json_path": "/root/.openclaw/workspace/projects/quantitative-trading/reports/trade-review/20260401T174822Z_smoke.json",
+      "markdown_path": "/root/.openclaw/workspace/projects/quantitative-trading/reports/trade-review/20260401T174822Z_smoke.md"
+    }
+  ],
+  "latest_by_cadence": {
+    "weekly": {
+      "label": "smoke",
+      "cadence": "weekly",
+      "generated_at": "2026-04-01T17:48:22.894473+00:00",
+      "json_path": "/root/.openclaw/workspace/projects/quantitative-trading/reports/trade-review/20260401T174822Z_smoke.json",
+      "markdown_path": "/root/.openclaw/workspace/projects/quantitative-trading/reports/trade-review/20260401T174822Z_smoke.md"
+    }
+  }
+}
