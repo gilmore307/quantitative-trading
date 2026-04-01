@@ -3,17 +3,17 @@
 This docs tree was seeded from realtime/live-operation material previously living in the older hybrid repository.
 
 ## Migrated as core realtime docs
-- `runtime-and-modes.md`
-- `execution-artifacts.md`
-- `review-operations.md`
-- `review-architecture.md`
-- `environment-and-operations.md`
-- `regime-and-decision-flow.md`
-- `state-and-artifacts.md`
+- `02-runtime-and-modes.md`
+- `09-execution-artifacts.md`
+- `05-review-operations.md`
+- `06-review-architecture.md`
+- `03-environment-and-operations.md`
+- `07-regime-and-decision-flow.md`
+- `08-state-and-artifacts.md`
 
 ## Split from hybrid docs
-- `parameter-promotion-workflow-live.md`
-- `research-runtime-separation-live.md`
+- `04-parameter-promotion-workflow-live.md`
+- `10-research-runtime-separation-live.md`
 
 ## Next step
 

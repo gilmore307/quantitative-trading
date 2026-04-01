@@ -2,16 +2,18 @@
 
 This docs tree is the canonical home for realtime trading / live execution / runtime operations documentation.
 
-## Start here
+## Read in order
 
-- `runtime-and-modes.md`
-- `execution-artifacts.md`
-- `review-operations.md`
-- `review-architecture.md`
-- `environment-and-operations.md`
-- `state-and-artifacts.md`
-- `parameter-promotion-workflow-live.md`
-- `research-runtime-separation-live.md`
+1. `01-overview.md`
+2. `02-runtime-and-modes.md`
+3. `03-environment-and-operations.md`
+4. `04-parameter-promotion-workflow-live.md`
+5. `05-review-operations.md`
+6. `06-review-architecture.md`
+7. `07-regime-and-decision-flow.md`
+8. `08-state-and-artifacts.md`
+9. `09-execution-artifacts.md`
+10. `10-research-runtime-separation-live.md`
 
 ## Core operating model
 
@@ -22,26 +24,7 @@ This docs tree is the canonical home for realtime trading / live execution / run
 - one live account is the current intended operating model
 - live review focuses on execution fidelity and execution-system health, not direct model optimization
 
-## Realtime architecture / operations
-
-- `runtime-and-modes.md`
-- `execution-artifacts.md`
-- `environment-and-operations.md`
-- `state-and-artifacts.md`
-- `regime-and-decision-flow.md`
-
-## Live review / promotion / workflow
-
-- `review-operations.md`
-- `review-architecture.md`
-- `parameter-promotion-workflow-live.md`
-- `research-runtime-separation-live.md`
-
 ## Documentation rule for this repo
 
 Each substantive realtime doc should explicitly list the main code / script touchpoints it depends on.
 That mapping is the source of truth for later script/module migration.
-
-## Historical note
-
-These docs were migrated out of the former hybrid `crypto-trading` / `trading-model` repo so realtime trading content can live in its own repository.
