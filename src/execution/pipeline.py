@@ -8,9 +8,9 @@ from src.execution.controller import RouteController, RouteControlResult
 from src.execution.exchange_snapshot import ExchangeSnapshotProvider
 from src.reconcile.alignment import ExchangePositionSnapshot
 from src.routing.composite import RouterCompositeSimulator
-from src.runners.regime_runner import BtcRegimeRunner, RegimeRunnerOutput
+from src.runtime.regime_runner import BtcRegimeRunner, RegimeRunnerOutput
 from src.runtime.mode_policy import policy_for_mode
-from src.runtime.strategy_pointer import ActiveStrategySnapshot, load_active_strategy_snapshot
+from src.upgrade.strategy_pointer import ActiveStrategySnapshot, load_active_strategy_snapshot
 from src.runtime.store import RuntimeStore
 from src.state.live_position import LivePosition
 from src.strategies.executors import ExecutionPlan, build_parallel_plans, executor_for

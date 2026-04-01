@@ -3,7 +3,7 @@ from __future__ import annotations
 import argparse
 from datetime import UTC, datetime
 
-from src.runtime.strategy_pointer import ActiveStrategySnapshot, store_active_strategy_snapshot
+from src.upgrade.strategy_pointer import ActiveStrategySnapshot, store_active_strategy_snapshot
 
 
 def build_arg_parser() -> argparse.ArgumentParser:
