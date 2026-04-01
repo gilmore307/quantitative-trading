@@ -388,37 +388,6 @@ def _plan_to_dict(plan: ExecutionPlan) -> dict:
 
 def executor_for(output: RegimeRunnerOutput) -> BaseExecutor:
     regime = output.final_decision['primary']
-    if not output.route_decision['trade_enabled'] or output.route_decision['account'] is None:
-        return HoldExecutor()
-    return EXECUTORS.get(regime, HoldExecutor())
-
-
-def build_shadow_plans(output: RegimeRunnerOutput) -> dict[str, dict]:
-    """Compatibility helper for artifact/report code.
-
-    Under the current single-active-strategy design, this no longer returns a
-    full parallel strategy matrix. It only returns the currently effective plan
-    candidate keyed by the active/final regime.
-    """
-    executor = executor_for(output)
-    plan = executor.build_plan(output)
-    key = str(output.final_decision.get('primary') or 'active')
-    return {key: {
-        'regime': plan.regime,
-        'account': plan.account,
-        'action': plan.action,
-        'side': plan.side,
-        'size': plan.size,
-        'reason': plan.reason,
-        'score': plan.score,
-        'blockers': plan.blockers,
-        'signals': plan.signals,
-        'subscores': plan.subscores,
-    }}
-
-
-def executor_for(output: RegimeRunnerOutput) -> BaseExecutor:
-    regime = output.final_decision['primary']
-    if not output.route_decision['trade_enabled'] or output.route_decision['account'] is None:
+    if output.route_decision.get('account') is None:
         return HoldExecutor()
     return EXECUTORS.get(regime, HoldExecutor())
