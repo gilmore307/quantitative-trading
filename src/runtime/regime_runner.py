@@ -53,7 +53,7 @@ class BtcRegimeRunner:
             'reasons': decision.reasons,
             'secondary': [x.value for x in decision.secondary],
             'scores': decision.scores,
-            'tradable': decision.tradable,
+            'tradable': True,
         }
 
     def _build_output(self) -> RegimeRunnerOutput:
