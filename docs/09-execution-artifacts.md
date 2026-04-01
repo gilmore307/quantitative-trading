@@ -75,28 +75,12 @@ These fields are expected to be sparse during hold-only / dry-run cycles and bec
 Stored under summary/artifact metadata, including fields such as:
 - `active_strategy_version`
 - `active_strategy_source`
-- `active_strategy_family`
+- `active_strategy_label`
 - `active_strategy_config_path`
 - `active_strategy_promoted_at`
 - `active_strategy_promotion_note`
 
 ### 6. Upgrade handover metadata
-Where relevant, upgrade-time artifacts should surface:
-- open-position observation
-- handover policy
-- handover decision
-- handover marker reference
-
-### 4. Active strategy metadata
-Stored under summary/artifact metadata, including fields such as:
-- `active_strategy_version`
-- `active_strategy_source`
-- `active_strategy_family`
-- `active_strategy_config_path`
-- `active_strategy_promoted_at`
-- `active_strategy_promotion_note`
-
-### 5. Upgrade handover metadata
 Where relevant, upgrade-time artifacts should surface:
 - open-position observation
 - handover policy
