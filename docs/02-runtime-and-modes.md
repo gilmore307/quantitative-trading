@@ -10,7 +10,7 @@ Only long-lived runtime states should be modeled as modes:
 
 - `develop` — idle development / maintenance mode; do not run normal strategy execution or routing
 - `trade` — normal trading mode; the long-running daemon state that executes the current active strategy
-- `reset` — development-only destructive reset: flatten, verify flat, convert residual assets if needed, rebuild/reset local bucket state, then return to `develop`
+- `reset` — development-only destructive reset/testing helper path; not part of the default strategy-upgrade flow
 - `test` — dedicated execution-system test mode; does not run normal strategy logic and should return to `develop`
 
 ## Events / jobs
@@ -68,7 +68,7 @@ If an upgrade happens while a position is open:
 
 - **strategy upgrade event** = the promotion-triggered online upgrade handling path
 - **review** = upgrade validation / execution diagnosis sub-step
-- **calibrate** = deprecated legacy reset/baseline-refresh term; not part of the default strategy-switch path
+- **calibrate** = removed legacy reset/baseline-refresh term; not part of the strategy-switch path
 
 ## Main code / script touchpoints
 
@@ -96,4 +96,4 @@ Think of the system as:
 - `trade` = the continuous state
 - `strategy_upgrade_event` = the main upgrade-time event
 - `review` = an internal event part, not a first-class mode
-- `calibrate` = deprecated legacy term, not a first-class mode and not part of the default upgrade event path
+- `calibrate` = removed legacy term, not a first-class mode and not part of the upgrade event path

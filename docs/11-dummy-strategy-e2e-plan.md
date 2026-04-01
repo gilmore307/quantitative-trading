@@ -155,4 +155,4 @@ Already verified in `quantitative-trading`:
   - `logs/runtime/latest-strategy-handover-marker.json`
 
 Remaining mismatch still visible after this validation:
-- upgrade workflow internals still reset/check old multi-account family buckets/accounts (`trend`, `crowded`, `meanrev`, `compression`, `realtime`) even though the newer live architecture is centered on a single promoted active model path
+- configuration/test helpers still contain legacy family/account naming in some places, but upgrade workflow internals no longer perform the old calibrate-style multi-account bucket/account reset path

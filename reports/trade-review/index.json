@@ -34,15 +34,22 @@
       "generated_at": "2026-04-01T18:44:11.579735+00:00",
       "json_path": "/root/.openclaw/workspace/projects/quantitative-trading/reports/trade-review/20260401T184411Z_weekly_2026-03-23__2026-03-30.json",
       "markdown_path": "/root/.openclaw/workspace/projects/quantitative-trading/reports/trade-review/20260401T184411Z_weekly_2026-03-23__2026-03-30.md"
+    },
+    {
+      "label": "weekly:2026-03-23->2026-03-30",
+      "cadence": "weekly",
+      "generated_at": "2026-04-01T18:47:07.779057+00:00",
+      "json_path": "/root/.openclaw/workspace/projects/quantitative-trading/reports/trade-review/20260401T184707Z_weekly_2026-03-23__2026-03-30.json",
+      "markdown_path": "/root/.openclaw/workspace/projects/quantitative-trading/reports/trade-review/20260401T184707Z_weekly_2026-03-23__2026-03-30.md"
     }
   ],
   "latest_by_cadence": {
     "weekly": {
       "label": "weekly:2026-03-23->2026-03-30",
       "cadence": "weekly",
-      "generated_at": "2026-04-01T18:44:11.579735+00:00",
-      "json_path": "/root/.openclaw/workspace/projects/quantitative-trading/reports/trade-review/20260401T184411Z_weekly_2026-03-23__2026-03-30.json",
-      "markdown_path": "/root/.openclaw/workspace/projects/quantitative-trading/reports/trade-review/20260401T184411Z_weekly_2026-03-23__2026-03-30.md"
+      "generated_at": "2026-04-01T18:47:07.779057+00:00",
+      "json_path": "/root/.openclaw/workspace/projects/quantitative-trading/reports/trade-review/20260401T184707Z_weekly_2026-03-23__2026-03-30.json",
+      "markdown_path": "/root/.openclaw/workspace/projects/quantitative-trading/reports/trade-review/20260401T184707Z_weekly_2026-03-23__2026-03-30.md"
     }
   }
 }

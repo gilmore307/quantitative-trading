@@ -73,7 +73,10 @@ class OkxWorkflowHooks(WorkflowHooks):
             self.settings.ensure_demo_only()
             symbol = self.settings.test_symbols[0]
             account_alias = self.settings.test_account_alias
-            account = self.settings.strategy_accounts[account_alias]
+            account = self.settings.strategy_accounts.get(account_alias)
+            if account is None:
+                account = next(iter(self.settings.strategy_accounts.values()))
+                account_alias = account.alias
             client = OkxClient(self.settings, account)
             total_actions: list[str] = []
             cycle_rows: list[dict[str, object]] = []
