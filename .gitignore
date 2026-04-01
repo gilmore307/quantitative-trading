@@ -1,0 +1,16 @@
+# Python
+.venv/
+__pycache__/
+*.pyc
+
+# Local secrets
+.env
+
+# Runtime / daemon state
+logs/
+reports/
+
+# Temporary outputs
+*.log
+*.tmp
+/tmp/
