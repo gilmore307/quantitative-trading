@@ -22,6 +22,8 @@ This means review should center on:
 - execution errors and instability
 - upgrade-impact validation
 
+At the current migration stage, the review/export side now has a dedicated execution-deviation layer, but it only becomes informative on cycles that actually contain realized pnl / fee / funding observations. Hold-only dummy cycles may still render that section as placeholder.
+
 ## Primary trigger
 
 The primary trigger for full review is now:

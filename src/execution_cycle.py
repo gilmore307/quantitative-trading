@@ -158,6 +158,45 @@ def _feature_snapshot(result: ExecutionCycleResult) -> dict[str, Any]:
     }
 
 
+def _theoretical_snapshot(result: ExecutionCycleResult) -> dict[str, Any]:
+    plan = result.plan
+    summary = result.regime_output.decision_summary or {}
+    receipt_raw = result.receipt.raw if result.receipt is not None and isinstance(result.receipt.raw, dict) else {}
+    fee_usdt = receipt_raw.get('fee_usdt')
+    funding_usdt = receipt_raw.get('funding_usdt')
+    realized_pnl_usdt = receipt_raw.get('realized_pnl_usdt')
+    expected_notional_usdt = None
+    settings = getattr(result.regime_output, 'settings', None)
+    if plan.action == 'enter' and plan.size is not None and settings is not None:
+        expected_notional_usdt = float(plan.size or 0.0) * float(getattr(settings, 'default_order_size_usdt', 0.0) or 0.0)
+    confidence = result.regime_output.final_decision.get('confidence')
+    theoretical_strength = float(plan.score) if plan.score is not None else (float(confidence) if confidence is not None else None)
+    theoretical_gross_pnl_proxy_usdt = None
+    if realized_pnl_usdt is not None or fee_usdt is not None or funding_usdt is not None:
+        theoretical_gross_pnl_proxy_usdt = float(realized_pnl_usdt or 0.0) + float(fee_usdt or 0.0) + float(funding_usdt or 0.0)
+    execution_drag_proxy_usdt = None if theoretical_gross_pnl_proxy_usdt is None and realized_pnl_usdt is None else float(theoretical_gross_pnl_proxy_usdt or 0.0) - float(realized_pnl_usdt or 0.0)
+    return {
+        'regime': plan.regime,
+        'action': plan.action,
+        'side': plan.side,
+        'size': plan.size,
+        'reason': plan.reason,
+        'score': plan.score,
+        'subscores': plan.subscores,
+        'signals': plan.signals,
+        'blockers': plan.blockers,
+        'decision_confidence': confidence,
+        'decision_trade_enabled': summary.get('trade_enabled'),
+        'expected_notional_usdt': expected_notional_usdt,
+        'theoretical_strength': theoretical_strength,
+        'theoretical_gross_pnl_proxy_usdt': theoretical_gross_pnl_proxy_usdt,
+        'realized_pnl_usdt': realized_pnl_usdt,
+        'fee_usdt': fee_usdt,
+        'funding_usdt': funding_usdt,
+        'execution_drag_proxy_usdt': execution_drag_proxy_usdt,
+    }
+
+
 def _verification_snapshot(result: ExecutionCycleResult) -> dict[str, Any]:
     local = result.local_position
     meta = ((local.meta if local is not None else None) or {})
@@ -214,6 +253,7 @@ def build_execution_artifact(result: ExecutionCycleResult) -> dict[str, Any]:
     payload['artifact_type'] = 'execution_cycle'
     payload['recorded_at'] = datetime.now(UTC).isoformat()
     payload['feature_snapshot'] = _feature_snapshot(result)
+    payload['theoretical_snapshot'] = _theoretical_snapshot(result)
     payload['verification_snapshot'] = _verification_snapshot(result)
     payload['attribution_snapshot'] = _build_attribution_snapshot(result)
     payload['ledger_snapshot'] = None if result.local_position is None else {
@@ -287,6 +327,14 @@ def build_execution_artifact(result: ExecutionCycleResult) -> dict[str, Any]:
         'entry_verified_hint': payload['verification_snapshot'].get('entry_verified_hint'),
         'entry_trade_confirmed': payload['verification_snapshot'].get('entry_trade_confirmed'),
         'entry_verification_attempt_count': payload['verification_snapshot'].get('entry_verification_attempt_count'),
+        'theoretical_action': payload['theoretical_snapshot'].get('action'),
+        'theoretical_side': payload['theoretical_snapshot'].get('side'),
+        'theoretical_size': payload['theoretical_snapshot'].get('size'),
+        'theoretical_reason': payload['theoretical_snapshot'].get('reason'),
+        'theoretical_score': payload['theoretical_snapshot'].get('score'),
+        'theoretical_strength': payload['theoretical_snapshot'].get('theoretical_strength'),
+        'theoretical_gross_pnl_proxy_usdt': payload['theoretical_snapshot'].get('theoretical_gross_pnl_proxy_usdt'),
+        'execution_drag_proxy_usdt': payload['theoretical_snapshot'].get('execution_drag_proxy_usdt'),
         'open_leg_count': 0 if result.local_position is None else len(result.local_position.open_legs),
         'closed_leg_count': 0 if result.local_position is None else len(result.local_position.closed_legs),
         'pending_exit_leg_count': 0 if result.local_position is None or result.local_position.pending_exit is None else len(result.local_position.pending_exit.allocations),
@@ -360,6 +408,7 @@ def _build_regime_local_artifact(result: ExecutionCycleResult, artifact: dict[st
         'strategy_stats_reason': summary.get('strategy_stats_reason'),
         'account_metrics': summary.get('account_metrics'),
         'feature_snapshot': artifact.get('feature_snapshot'),
+        'theoretical_snapshot': artifact.get('theoretical_snapshot'),
     }
 
 
@@ -387,6 +436,8 @@ def _build_anomaly_artifact(result: ExecutionCycleResult, artifact: dict[str, An
         'attribution_fee_source': summary.get('attribution_fee_source'),
         'attribution_realized_pnl_source': summary.get('attribution_realized_pnl_source'),
         'attribution_equity_source': summary.get('attribution_equity_source'),
+        'theoretical_gross_pnl_proxy_usdt': summary.get('theoretical_gross_pnl_proxy_usdt'),
+        'execution_drag_proxy_usdt': summary.get('execution_drag_proxy_usdt'),
         'strategy_stats_reason': summary.get('strategy_stats_reason'),
         'entry_verified_hint': summary.get('entry_verified_hint'),
         'entry_trade_confirmed': summary.get('entry_trade_confirmed'),

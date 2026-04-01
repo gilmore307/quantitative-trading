@@ -314,11 +314,28 @@ def _build_execution_quality_summary(history_rows: list[dict[str, Any]]) -> dict
     return {'clean_trade_count': clean, 'excluded_trade_count': excluded, 'excluded_pnl_usdt': round(excluded_pnl_usdt, 10), 'top_excluded_reasons': top_excluded_reasons, 'excluded_samples': excluded_rows[:20], 'anomaly_breakdown': anomaly_breakdown, 'confirmation_breakdown': confirmation_breakdown, 'status': 'ready' if history_rows else 'placeholder'}
 
 
-def _build_execution_deviation_summary(performance_summary: dict[str, Any]) -> dict[str, Any]:
+def _build_execution_deviation_summary(performance_summary: dict[str, Any], history_rows: list[dict[str, Any]]) -> dict[str, Any]:
     row = performance_summary.get('execution_deviation') if isinstance(performance_summary, dict) else None
-    if not isinstance(row, dict):
-        return {'status': 'placeholder', 'row': None}
-    return {'status': 'ready', 'row': row}
+    if isinstance(row, dict) and any(row.get(key) is not None for key in ('theoretical_gross_pnl_proxy_usdt', 'realized_execution_drag_usdt', 'actual_pnl_usdt')):
+        return {'status': 'ready', 'row': row}
+    for history_row in reversed(history_rows):
+        summary = history_row.get('summary') if isinstance(history_row.get('summary'), dict) else {}
+        if not isinstance(summary, dict):
+            continue
+        candidate = {
+            'account': 'active_live',
+            'actual_pnl_usdt': ((summary.get('account_metrics') or {}).get('active_live') or {}).get('pnl_usdt'),
+            'theoretical_gross_pnl_proxy_usdt': summary.get('theoretical_gross_pnl_proxy_usdt'),
+            'realized_execution_drag_usdt': summary.get('execution_drag_proxy_usdt'),
+            'fee_usdt': ((summary.get('account_metrics') or {}).get('active_live') or {}).get('fee_usdt'),
+            'funding_usdt': ((summary.get('account_metrics') or {}).get('active_live') or {}).get('funding_usdt'),
+            'trade_count': ((summary.get('account_metrics') or {}).get('active_live') or {}).get('trade_count'),
+            'exposure_time_pct': ((summary.get('account_metrics') or {}).get('active_live') or {}).get('exposure_time_pct'),
+            'attribution_confidence': 'derived',
+        }
+        if any(candidate.get(key) is not None for key in ('theoretical_gross_pnl_proxy_usdt', 'realized_execution_drag_usdt', 'actual_pnl_usdt')):
+            return {'status': 'ready', 'row': candidate}
+    return {'status': 'placeholder', 'row': None}
 
 
 def _build_regime_local_section(regime_local: dict[str, Any]) -> dict[str, Any]:
@@ -449,7 +466,7 @@ def build_report_scaffold(window: ReviewWindow, metrics_by_account: dict[str, di
     mapping_validity = _build_mapping_validity_summary(history_rows)
     overlap = _build_overlap_summary(history_rows)
     execution_quality = _build_execution_quality_summary(history_rows)
-    execution_deviation = _build_execution_deviation_summary(performance_summary)
+    execution_deviation = _build_execution_deviation_summary(performance_summary, history_rows)
     execution_improvement_section = _build_execution_improvement_section(performance_summary)
     sections = [{'key': 'market_regime_summary', 'title': 'Market Regime Summary', 'status': 'placeholder', 'items': []}, _build_live_performance_section(performance_summary), _build_execution_deviation_section(execution_deviation), _build_regime_local_section(regime_local), _build_mapping_validity_section(mapping_validity), _build_overlap_section(overlap), _build_execution_quality_section(execution_quality), execution_improvement_section]
     if cadence == 'quarterly':

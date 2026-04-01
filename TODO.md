@@ -15,7 +15,8 @@
    - `logs/runtime/latest-execution-cycle.json`
    - `logs/runtime/execution-cycles/*.jsonl`
    - `logs/runtime/trade-daemon-*.jsonl`
-5. only after the dummy path is proven, continue deleting stale review/compare/shadow-plan compatibility code
+5. validate `theoretical_snapshot` / execution-drag fields on a cycle that actually contains fill/fee/pnl data
+6. only after the dummy path is proven, continue deleting stale review/compare/shadow-plan compatibility code
 
 ## Known blockers
 - repo currently has no `pyproject.toml` / `requirements.txt`, so even basic execution currently fails on missing deps such as `python-dotenv`
