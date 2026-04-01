@@ -11,14 +11,21 @@ This flow step covers how the live runtime is started, operated, and kept safe.
 
 ## Current contents
 
-- no code has been moved here yet
-- this step currently remains documentation-first
+### Startup / service entrypoints
+- `run_daemon.sh`
+- `systemd/quantitative-trading.service`
+
+### Runtime helper scripts
+- `scripts/runtime/execution_cycle.py`
+- `scripts/runtime/regime_snapshot.py`
+- `scripts/runtime/shock_snapshot.py`
+- `scripts/runtime/trade_alert_scan.py`
 
 ## Likely future additions
 
-- daemon startup wrappers such as `run_daemon.sh`
-- service/unit files when they are migrated into this repository
+- any additional service/unit files used by the live runtime
 - operation-specific helper scripts tied to runtime startup and service management
+- migration of more runtime-side shell helpers if they remain part of the live system
 
 ## Expected future home
 
