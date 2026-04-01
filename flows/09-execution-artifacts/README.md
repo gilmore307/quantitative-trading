@@ -11,14 +11,36 @@ This flow step covers live execution-cycle production and artifact persistence.
 
 ## Current contents
 
-- `src/runners/execution_cycle.py`
-- `src/execution/`
+### pipeline
+- `pipeline/pipeline.py`
+- `pipeline/controller.py`
+
+### policy
+- `policy/policy.py`
+
+### verification
+- `verification/confirm.py`
+
+### exchange
+- `exchange/exchange_snapshot.py`
+- `exchange/adapters.py`
+
+### plumbing
+- `plumbing/identifiers.py`
+- `plumbing/locks.py`
+
+### runners
+- `runners/execution_cycle.py`
+
+## Notes on current cleanup
+
+This flow step is now grouped by execution responsibility rather than by the old flat `src/execution/` copy layout.
 
 ## Likely next additions
 
-- any remaining execution-adjacent helpers still sitting outside `src/execution/`
 - artifact schema helpers if they get separated later
+- any remaining execution-adjacent helpers that are still outside this flow step
 
 ## Expected future home
 
-These files will likely stay close to final `src/execution/` plus selected `src/runners/` entrypoints in `quantitative-trading`.
+These files will likely consolidate into the final `src/execution/` tree plus selected `src/runners/` entrypoints in `quantitative-trading`.
