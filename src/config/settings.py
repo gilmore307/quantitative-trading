@@ -8,40 +8,16 @@ from pydantic import BaseModel, Field
 
 
 DEFAULT_SYMBOLS = ["BTC-USDT-SWAP"]
-DEFAULT_STRATEGIES = ["trend", "crowded", "meanrev", "compression", "realtime"]
+DEFAULT_STRATEGIES = ["active_live"]
 DEFAULT_STRATEGY_SYMBOLS = {
-    "trend": {
-        "BTC-USDT-SWAP": "BTC/USDT:USDT",
-        "ETH-USDT-SWAP": "ETH/USDT:USDT",
-        "SOL-USDT-SWAP": "SOL/USDT:USDT",
-    },
-    "crowded": {
-        "BTC-USDT-SWAP": "BTC/USDT:USDT",
-        "ETH-USDT-SWAP": "ETH/USDT:USDT",
-        "SOL-USDT-SWAP": "SOL/USDT:USDT",
-    },
-    "meanrev": {
-        "BTC-USDT-SWAP": "BTC/USDT:USDT",
-        "ETH-USDT-SWAP": "ETH/USDT:USDT",
-        "SOL-USDT-SWAP": "SOL/USDT:USDT",
-    },
-    "compression": {
-        "BTC-USDT-SWAP": "BTC/USDT:USDT",
-        "ETH-USDT-SWAP": "ETH/USDT:USDT",
-        "SOL-USDT-SWAP": "SOL/USDT:USDT",
-    },
-    "realtime": {
+    "active_live": {
         "BTC-USDT-SWAP": "BTC/USDT:USDT",
         "ETH-USDT-SWAP": "ETH/USDT:USDT",
         "SOL-USDT-SWAP": "SOL/USDT:USDT",
     },
 }
 DEFAULT_STRATEGY_ACCOUNT_ALIASES = {
-    "trend": "trend",
-    "crowded": "crowded",
-    "meanrev": "meanrev",
-    "compression": "compression",
-    "realtime": "realtime",
+    "active_live": "active_live",
 }
 
 
@@ -109,8 +85,8 @@ class Settings(BaseModel):
     reset_equity_threshold_usdt: float = 66000.0
     default_order_size_usdt: float = 100.0
     test_symbols: list[str] = ["XRP-USDT-SWAP"]
-    test_strategy: str = "trend"
-    test_account_alias: str = "trend"
+    test_strategy: str = "active_live"
+    test_account_alias: str = "active_live"
     test_duration_minutes: int = 10
     test_action_interval_seconds: float = 2.0
     test_entry_usdt: float = 120.0
@@ -137,7 +113,7 @@ class Settings(BaseModel):
         return self.ccxt_symbol(mapped)
 
     def account_for_strategy(self, strategy_name: str) -> StrategyAccountConfig:
-        alias = self.strategy_account_aliases.get(strategy_name, "default")
+        alias = self.strategy_account_aliases.get(strategy_name, "active_live")
         if alias not in self.strategy_accounts:
             raise KeyError(f"No strategy account configured for strategy={strategy_name}, alias={alias}")
         return self.strategy_accounts[alias]
@@ -166,34 +142,19 @@ class Settings(BaseModel):
         symbols = [item.strip() for item in symbols_raw.split(",") if item.strip()]
         strategies = [item.strip() for item in strategies_raw.split(",") if item.strip()]
 
-        default_account = {
-            "alias": "trend",
-            "api_key": os.getenv("OKX_TREND_API_KEY", os.getenv("OKX_BREAKOUT_API_KEY", os.getenv("OKX_API_KEY", ""))),
-            "api_secret": os.getenv("OKX_TREND_API_SECRET", os.getenv("OKX_BREAKOUT_API_SECRET", os.getenv("OKX_API_SECRET", ""))),
-            "api_passphrase": os.getenv("OKX_TREND_API_PASSPHRASE", os.getenv("OKX_BREAKOUT_API_PASSPHRASE", os.getenv("OKX_API_PASSPHRASE", ""))),
-            "label": os.getenv("OKX_TREND_ACCOUNT_LABEL", os.getenv("OKX_ACCOUNT_LABEL", "Trend")),
-        }
+        active_live_alias = os.getenv("ACTIVE_LIVE_ACCOUNT_ALIAS", os.getenv("TEST_ACCOUNT_ALIAS", "active_live"))
         strategy_account_aliases = {
-            "trend": os.getenv("TREND_ACCOUNT_ALIAS", os.getenv("BREAKOUT_ACCOUNT_ALIAS", "trend")),
-            "crowded": os.getenv("CROWDED_ACCOUNT_ALIAS", os.getenv("PULLBACK_ACCOUNT_ALIAS", "crowded")),
-            "meanrev": os.getenv("MEANREV_ACCOUNT_ALIAS", "meanrev"),
-            "compression": os.getenv("COMPRESSION_ACCOUNT_ALIAS", "compression"),
-            "realtime": os.getenv("REALTIME_ACCOUNT_ALIAS", "realtime"),
+            "active_live": active_live_alias,
         }
         strategy_accounts = {
-            "trend": default_account,
+            active_live_alias: {
+                "alias": active_live_alias,
+                "api_key": os.getenv("OKX_ACTIVE_LIVE_API_KEY", os.getenv("OKX_API_KEY", "")),
+                "api_secret": os.getenv("OKX_ACTIVE_LIVE_API_SECRET", os.getenv("OKX_API_SECRET", "")),
+                "api_passphrase": os.getenv("OKX_ACTIVE_LIVE_API_PASSPHRASE", os.getenv("OKX_API_PASSPHRASE", "")),
+                "label": os.getenv("OKX_ACTIVE_LIVE_ACCOUNT_LABEL", "Active Live"),
+            },
         }
-        for alias in sorted(set(strategy_account_aliases.values())):
-            if alias == "trend":
-                continue
-            prefix = alias.upper()
-            strategy_accounts[alias] = {
-                "alias": alias,
-                "api_key": os.getenv(f"OKX_{prefix}_API_KEY", ""),
-                "api_secret": os.getenv(f"OKX_{prefix}_API_SECRET", ""),
-                "api_passphrase": os.getenv(f"OKX_{prefix}_API_PASSPHRASE", ""),
-                "label": os.getenv(f"OKX_{prefix}_ACCOUNT_LABEL", alias),
-            }
 
         verification_delays_raw = [item.strip() for item in os.getenv("VERIFICATION_DELAYS_SECONDS", "1,2,4").split(",") if item.strip()]
         verification_delays = [float(item) for item in verification_delays_raw] if verification_delays_raw else [1.0, 2.0, 4.0]
@@ -253,8 +214,8 @@ class Settings(BaseModel):
             "reset_equity_threshold_usdt": float(os.getenv("RESET_EQUITY_THRESHOLD_USDT", "66000")),
             "default_order_size_usdt": float(os.getenv("DEFAULT_ORDER_SIZE_USDT", "100")),
             "test_symbols": [item.strip() for item in os.getenv("TEST_SYMBOLS", "XRP-USDT-SWAP").split(",") if item.strip()],
-            "test_strategy": os.getenv("TEST_STRATEGY", "trend"),
-            "test_account_alias": os.getenv("TEST_ACCOUNT_ALIAS", "trend"),
+            "test_strategy": os.getenv("TEST_STRATEGY", "active_live"),
+            "test_account_alias": os.getenv("TEST_ACCOUNT_ALIAS", active_live_alias),
             "test_duration_minutes": int(os.getenv("TEST_DURATION_MINUTES", "10")),
             "test_action_interval_seconds": float(os.getenv("TEST_ACTION_INTERVAL_SECONDS", "2")),
             "test_entry_usdt": float(os.getenv("TEST_ENTRY_USDT", "120")),
