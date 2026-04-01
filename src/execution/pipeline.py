@@ -13,7 +13,7 @@ from src.runtime.mode_policy import policy_for_mode
 from src.upgrade.strategy_pointer import ActiveStrategySnapshot, load_active_strategy_snapshot
 from src.runtime.store import RuntimeStore
 from src.state.live_position import LivePosition
-from src.strategies.executors import ExecutionPlan, build_parallel_plans, executor_for
+from src.strategies.executors import ExecutionPlan, executor_for
 
 
 @dataclass(slots=True)
@@ -48,9 +48,10 @@ class ExecutionCycleResult:
 
 
 @dataclass(slots=True)
-class ParallelExecutionCycleResult:
+class ActiveStrategyExecutionResult:
     regime_output: RegimeRunnerOutput
-    results: dict[str, ExecutionCycleResult]
+    strategy_name: str
+    result: ExecutionCycleResult
     runtime_state: dict
     active_strategy: dict
     live_positions: list[dict]
@@ -83,9 +84,6 @@ class ExecutionPipeline:
 
     def build_plan(self, output: RegimeRunnerOutput) -> ExecutionPlan:
         return executor_for(output).build_plan(output)
-
-    def build_parallel_plans(self, output: RegimeRunnerOutput) -> dict[str, ExecutionPlan]:
-        return build_parallel_plans(output)
 
     def _initial_trace(self, mode, mode_policy, regime_output: RegimeRunnerOutput) -> ExecutionDecisionTrace:
         summary = regime_output.decision_summary or {}
@@ -278,13 +276,7 @@ class ExecutionPipeline:
             self.adapter = DryRunExecutionAdapter()
         return self._run_single_account_plan(regime_output, plan, trace, exchange_snapshot)
 
-    def run_cycle_parallel(self) -> ParallelExecutionCycleResult:
-        """Compatibility wrapper for the old API.
-
-        The current live design is single-account / single-active-strategy.
-        So this method now executes one effective active strategy path and wraps
-        the result in a ParallelExecutionCycleResult-shaped payload for backward compatibility.
-        """
+    def run_cycle_active_strategy(self) -> ActiveStrategyExecutionResult:
         mode = self.runtime_store.get().mode
         mode_policy = policy_for_mode(mode)
         regime_output = self.regime_runner.run_once() if mode_policy.allow_strategy_execution else self._idle_regime_output()
@@ -293,25 +285,26 @@ class ExecutionPipeline:
 
         active_snapshot = self._active_strategy_snapshot()
         active_family = str((active_snapshot.metadata or {}).get('family') or regime_output.final_decision.get('primary') or 'default')
-        results: dict[str, ExecutionCycleResult] = {}
-
         if not mode_policy.allow_strategy_execution or not mode_policy.allow_normal_routing:
             trace = self._initial_trace(mode, mode_policy, regime_output)
             trace.block_reason = f'mode_no_strategy:{mode.value}' if not mode_policy.allow_strategy_execution else f'mode_blocked:{mode.value}'
             trace.allow_reason = None
             plan = ExecutionPlan(regime=regime_output.final_decision['primary'], account=None, action='hold', reason=trace.block_reason)
-            results['idle'] = self._run_single_account_plan(regime_output, plan, trace, None)
+            cycle_result = self._run_single_account_plan(regime_output, plan, trace, None)
+            strategy_name = 'idle'
         else:
             plan = self.build_plan(regime_output)
             trace = self._initial_trace(mode, mode_policy, regime_output)
             trace.pipeline_trade_enabled = True
             trace.allow_reason = f'active_strategy:{active_family}'
             trace.diagnostics.append('single_active_strategy_execution')
-            results[active_family] = self._run_single_account_plan(regime_output, plan, trace, None)
+            cycle_result = self._run_single_account_plan(regime_output, plan, trace, None)
+            strategy_name = active_family
 
-        return ParallelExecutionCycleResult(
+        return ActiveStrategyExecutionResult(
             regime_output=regime_output,
-            results=results,
+            strategy_name=strategy_name,
+            result=cycle_result,
             runtime_state=asdict(self.runtime_store.get()),
             active_strategy=asdict(active_snapshot),
             live_positions=[asdict(position) for position in self.controller.store.list_positions()],
