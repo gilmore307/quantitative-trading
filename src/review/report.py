@@ -177,7 +177,7 @@ def _build_regime_local_summary(history_rows: list[dict[str, Any]]) -> dict[str,
     for row in history_rows:
         summary = row.get('summary') if isinstance(row.get('summary'), dict) else row
         regime = str(summary.get('regime') or summary.get('final_regime') or 'unknown')
-        route_family = str(summary.get('route_strategy_family') or 'none')
+        route_family = str(summary.get('active_route') or 'none')
         eligible = bool(summary.get('strategy_stats_eligible', False))
         account_metrics = summary.get('account_metrics') if isinstance(summary.get('account_metrics'), dict) else {}
         plan_account = summary.get('plan_account') or summary.get('route_account') or (next(iter(account_metrics.keys())) if account_metrics else None)

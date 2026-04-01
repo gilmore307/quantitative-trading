@@ -49,7 +49,7 @@ def _build_regime_output(active: ActiveStrategySnapshot) -> RegimeRunnerOutput:
         'confidence': 1.0,
         'tradable': True,
         'account': DUMMY_ACCOUNT_ALIAS,
-        'strategy_family': family,
+        'active_route': 'active_live',
         'trade_enabled': True,
         'allow_reason': 'dummy_live_cycle_enabled',
         'block_reason': None,
@@ -67,7 +67,7 @@ def _build_regime_output(active: ActiveStrategySnapshot) -> RegimeRunnerOutput:
         primary_features={'adx': 25.0, 'last_price': 100000.0, 'vwap_deviation_z': 0.5, 'bollinger_bandwidth_pct': 0.02, 'realized_vol_pct': 0.5, 'funding_pctile': 0.5, 'oi_accel': 0.1, 'basis_deviation_pct': 0.001},
         override_features={'last_price': 100000.0, 'vwap_deviation_z': 0.4, 'trade_burst_score': 0.7, 'liquidation_spike_score': 0.0, 'orderbook_imbalance': 0.0, 'realized_vol_pct': 0.5},
         final_decision={'primary': family, 'confidence': 1.0, 'reasons': ['dummy_live_cycle'], 'secondary': [], 'tradable': True},
-        route_decision={'regime': family, 'account': DUMMY_ACCOUNT_ALIAS, 'strategy_family': family, 'trade_enabled': True, 'allow_reason': 'dummy_live_cycle_enabled', 'block_reason': None},
+        route_decision={'regime': family, 'account': DUMMY_ACCOUNT_ALIAS, 'active_route': 'active_live', 'trade_enabled': True, 'allow_reason': 'dummy_live_cycle_enabled', 'block_reason': None},
         decision_summary=decision_summary,
         settings=None,
     )

@@ -118,16 +118,6 @@ class Settings(BaseModel):
             raise KeyError(f"No active live account configured for alias={alias}")
         return self.strategy_accounts[alias]
 
-    def account_for_strategy(self, strategy_name: str) -> StrategyAccountConfig:
-        return self.active_live_account()
-
-    def strategy_for_account_alias(self, account_alias: str | None) -> str | None:
-        if not account_alias:
-            return None
-        if account_alias == self.active_live_account().alias:
-            return 'active_live'
-        return None
-
     def display_name_for_account_alias(self, account_alias: str | None) -> str:
         if account_alias == self.active_live_account().alias:
             return 'active_live'

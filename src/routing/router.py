@@ -19,7 +19,7 @@ REGIME_ACCOUNT_MAP: dict[Regime, str | None] = {
 class RouteDecision:
     regime: Regime
     account: str | None
-    strategy_family: str | None
+    active_route: str | None
     trade_enabled: bool
     block_reason: str | None = None
     allow_reason: str | None = None
@@ -31,7 +31,7 @@ class DecisionSummary:
     confidence: float
     tradable: bool
     account: str | None
-    strategy_family: str | None
+    active_route: str | None
     trade_enabled: bool
     allow_reason: str | None
     block_reason: str | None
@@ -48,7 +48,7 @@ def route_regime(regime: Regime) -> RouteDecision:
     return RouteDecision(
         regime=regime,
         account=account,
-        strategy_family='active_live' if account is not None else None,
+        active_route='active_live' if account is not None else None,
         trade_enabled=trade_enabled,
         block_reason=block_reason,
         allow_reason=allow_reason,
@@ -94,7 +94,7 @@ def summarize_decision(decision: RegimeDecision, route: RouteDecision) -> Decisi
         confidence=decision.confidence,
         tradable=decision.tradable,
         account=route.account,
-        strategy_family=route.strategy_family,
+        active_route=route.active_route,
         trade_enabled=trade_enabled,
         allow_reason=allow_reason,
         block_reason=block_reason,

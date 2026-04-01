@@ -108,8 +108,8 @@ class ExecutionPipeline:
             primary_features={},
             override_features={},
             final_decision={'primary': 'idle', 'confidence': 0.0, 'reasons': ['strategy_execution_disabled'], 'secondary': [], 'tradable': False},
-            route_decision={'regime': 'idle', 'account': None, 'strategy_family': None, 'trade_enabled': False, 'allow_reason': None, 'block_reason': 'strategy_execution_disabled'},
-            decision_summary={'regime': 'idle', 'confidence': 0.0, 'tradable': False, 'account': None, 'strategy_family': None, 'trade_enabled': False, 'allow_reason': None, 'block_reason': 'strategy_execution_disabled', 'reasons': ['strategy_execution_disabled'], 'secondary': [], 'diagnostics': ['strategy_execution_disabled']},
+            route_decision={'regime': 'idle', 'account': None, 'active_route': None, 'trade_enabled': False, 'allow_reason': None, 'block_reason': 'strategy_execution_disabled'},
+            decision_summary={'regime': 'idle', 'confidence': 0.0, 'tradable': False, 'account': None, 'active_route': None, 'trade_enabled': False, 'allow_reason': None, 'block_reason': 'strategy_execution_disabled', 'reasons': ['strategy_execution_disabled'], 'secondary': [], 'diagnostics': ['strategy_execution_disabled']},
         )
 
     def _entry_preflight(self, account: str, symbol: str, size: float | None) -> tuple[bool, str | None]:
