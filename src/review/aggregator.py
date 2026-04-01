@@ -5,9 +5,8 @@ from datetime import UTC, date, datetime
 from pathlib import Path
 from typing import Any, Iterable
 
-from src.review.history_loader import load_jsonl_rows
 from src.review.ingestion import canonicalize_history_row
-from src.review.performance import DEFAULT_COMPARE_ACCOUNTS, FLAT_COMPARE_ALIAS
+from src.review.performance import DEFAULT_COMPARE_ACCOUNTS, FLAT_COMPARE_ALIAS, ACTIVE_LIVE_ALIAS
 from src.runtime.business_time import business_midnight
 
 
@@ -175,16 +174,15 @@ def aggregate_from_execution_history(
     total_rows = len(filtered_rows)
     for row_ts, _, row in filtered_rows:
         summary = row.get('summary', {})
-        plan_account = summary.get('plan_account')
         plan_action = summary.get('plan_action')
         receipt_accepted = summary.get('receipt_accepted')
         strategy_stats_eligible = bool(summary.get('strategy_stats_eligible', True))
 
-        if plan_account in counts and plan_action in {'enter', 'exit'} and receipt_accepted is not False and strategy_stats_eligible:
-            counts[plan_account] += 1
+        if plan_action in {'enter', 'exit'} and receipt_accepted is not False and strategy_stats_eligible:
+            counts[ACTIVE_LIVE_ALIAS] += 1
 
-        if plan_account in exposure_counts and summary.get('position_open_during_cycle'):
-            exposure_counts[plan_account] += 1
+        if summary.get('position_open_during_cycle'):
+            exposure_counts[ACTIVE_LIVE_ALIAS] += 1
 
         canonical_metrics = canonicalize_history_row(row)
         for alias, metric_row in canonical_metrics.items():
@@ -248,7 +246,6 @@ def aggregate_from_execution_history(
                     max_drawdown_by_alias=max_drawdown_by_curve,
                     alias=alias,
                 )
-
             equity_usdt = metric_row.get('equity_usdt')
             if equity_usdt is not None:
                 if _later_metric_candidate(current_ts=latest_equity_snapshot_ts[alias], candidate_ts=row_ts):

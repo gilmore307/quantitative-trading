@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from src.review.performance import DEFAULT_COMPARE_ACCOUNTS, FLAT_COMPARE_ALIAS
+from src.review.performance import DEFAULT_COMPARE_ACCOUNTS, FLAT_COMPARE_ALIAS, ACTIVE_LIVE_ALIAS
 
 
 CANONICAL_NUMERIC_FIELDS = (
@@ -87,13 +87,9 @@ def _merge_metric_fields(target: dict[str, float], raw: dict[str, Any], *, overw
 def canonicalize_history_row(row: dict[str, Any]) -> dict[str, dict[str, float]]:
     """Extract canonical performance hints from one execution artifact row.
 
-    Current priority:
-    1. receipt.raw / receipt-level performance hints
-    2. summary.account_metrics canonical payload
-    3. active-strategy primary summary when available
-
-    The extractor is intentionally permissive so runtime artifacts can evolve
-    without forcing repeated review-pipeline rewrites.
+    The current live architecture is single-active-model oriented, so any
+    live execution-side metrics are aggregated under `active_live` rather than
+    a standing family-account matrix.
     """
 
     metrics: dict[str, dict[str, float]] = {}
@@ -102,21 +98,17 @@ def canonicalize_history_row(row: dict[str, Any]) -> dict[str, dict[str, float]]
     receipt_raw = receipt.get('raw') if isinstance(receipt, dict) else {}
     if not isinstance(receipt_raw, dict):
         receipt_raw = {}
-
-    receipt_account = receipt.get('account') if isinstance(receipt, dict) else None
-    raw_account = receipt_raw.get('account_alias') if isinstance(receipt_raw, dict) else None
-    account = raw_account or receipt_account
-    if account in DEFAULT_COMPARE_ACCOUNTS:
-        target = metrics.setdefault(account, {})
+    if isinstance(receipt_raw, dict) and receipt_raw:
+        target = metrics.setdefault(ACTIVE_LIVE_ALIAS, {})
         _merge_metric_fields(target, receipt_raw, overwrite=False)
 
     summary = row.get('summary') or {}
     summary_metrics = summary.get('account_metrics') if isinstance(summary, dict) else None
     if isinstance(summary_metrics, dict):
-        for alias, raw in summary_metrics.items():
-            if alias not in DEFAULT_COMPARE_ACCOUNTS or not isinstance(raw, dict):
+        for _, raw in summary_metrics.items():
+            if not isinstance(raw, dict):
                 continue
-            target = metrics.setdefault(alias, {})
+            target = metrics.setdefault(ACTIVE_LIVE_ALIAS, {})
             _merge_metric_fields(target, raw, overwrite=True)
 
     primary_summary = None
@@ -125,10 +117,8 @@ def canonicalize_history_row(row: dict[str, Any]) -> dict[str, dict[str, float]]
     elif isinstance(row.get('result'), dict) and isinstance(row['result'].get('summary'), dict):
         primary_summary = row['result']['summary']
     if isinstance(primary_summary, dict):
-        alias = primary_summary.get('plan_account') or primary_summary.get('route_account')
-        if alias in DEFAULT_COMPARE_ACCOUNTS:
-            target = metrics.setdefault(alias, {})
-            _merge_metric_fields(target, primary_summary, overwrite=False)
+        target = metrics.setdefault(ACTIVE_LIVE_ALIAS, {})
+        _merge_metric_fields(target, primary_summary, overwrite=False)
 
     metrics.setdefault(FLAT_COMPARE_ALIAS, {})
     return metrics
