@@ -13,6 +13,7 @@ from src.state.log_paths import RUNTIME_DIR, dated_jsonl_path
 OUT_DIR = RUNTIME_DIR
 LATEST_PATH = OUT_DIR / 'latest-execution-cycle.json'
 HISTORY_PATH = lambda: dated_jsonl_path('execution-cycles')
+DETAILED_HISTORY_PATH = lambda: dated_jsonl_path('execution-cycle-details')
 ANOMALY_HISTORY_PATH = lambda: dated_jsonl_path('execution-anomalies')
 REGIME_HISTORY_PATH = lambda: dated_jsonl_path('regime-local-history')
 
@@ -25,6 +26,11 @@ def _json_default(value: Any):
     if isinstance(value, datetime):
         return value.astimezone(UTC).isoformat()
     return str(value)
+
+
+def _append_jsonl(path_or_factory, payload: dict[str, Any]) -> None:
+    with _resolve_path(path_or_factory).open('a', encoding='utf-8') as handle:
+        handle.write(json.dumps(payload, default=_json_default, ensure_ascii=False) + '\n')
 
 
 def _balance_summary_for_result(result: ExecutionCycleResult) -> dict[str, Any] | None:
@@ -361,16 +367,11 @@ def _build_anomaly_artifact(result: ExecutionCycleResult, artifact: dict[str, An
 
 def persist_execution_artifact(result: ExecutionCycleResult) -> dict[str, Any]:
     artifact = build_execution_artifact(result)
-    LATEST_PATH.write_text(json.dumps(artifact, indent=2, default=_json_default, ensure_ascii=False))
-    with _resolve_path(HISTORY_PATH).open('a', encoding='utf-8') as handle:
-        handle.write(json.dumps(artifact, default=_json_default, ensure_ascii=False) + '\n')
-    regime_local = _build_regime_local_artifact(result, artifact)
-    with _resolve_path(REGIME_HISTORY_PATH).open('a', encoding='utf-8') as handle:
-        handle.write(json.dumps(regime_local, default=_json_default, ensure_ascii=False) + '\n')
+    _append_jsonl(DETAILED_HISTORY_PATH, artifact)
+    _append_jsonl(REGIME_HISTORY_PATH, _build_regime_local_artifact(result, artifact))
     anomaly = _build_anomaly_artifact(result, artifact)
     if anomaly is not None:
-        with _resolve_path(ANOMALY_HISTORY_PATH).open('a', encoding='utf-8') as handle:
-            handle.write(json.dumps(anomaly, default=_json_default, ensure_ascii=False) + '\n')
+        _append_jsonl(ANOMALY_HISTORY_PATH, anomaly)
     return artifact
 
 
@@ -405,11 +406,12 @@ def build_active_strategy_execution_artifact(result: ActiveStrategyExecutionResu
 
 
 def persist_active_strategy_execution_artifact(result: ActiveStrategyExecutionResult) -> dict[str, Any]:
+    primary = persist_execution_artifact(result.result)
     artifact = build_active_strategy_execution_artifact(result)
+    artifact['result'] = primary
+    artifact['summary']['primary_summary'] = primary.get('summary')
     LATEST_PATH.write_text(json.dumps(artifact, indent=2, default=_json_default, ensure_ascii=False))
-    with _resolve_path(HISTORY_PATH).open('a', encoding='utf-8') as handle:
-        handle.write(json.dumps(artifact, default=_json_default, ensure_ascii=False) + '\n')
-    persist_execution_artifact(result.result)
+    _append_jsonl(HISTORY_PATH, artifact)
     return artifact
 
 

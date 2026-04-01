@@ -1,12 +1,12 @@
 {
   "version": "legacy-default",
-  "updated_at": "2026-04-01T17:35:39.368785+00:00",
+  "updated_at": "2026-04-01T17:39:32.724097+00:00",
   "source": "implicit_runtime_default",
   "metadata": {
     "note": "active strategy pointer not initialized; using legacy runtime default",
     "family": "default",
     "config_path": "",
-    "promoted_at": "2026-04-01T17:35:39.368800+00:00",
+    "promoted_at": "2026-04-01T17:39:32.724115+00:00",
     "promotion_note": "bootstrap default pointer"
   }
 }
