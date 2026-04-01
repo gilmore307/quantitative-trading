@@ -8,7 +8,7 @@ import requests
 
 from src.config.settings import Settings
 
-STATE_PATH = Path('/root/.openclaw/workspace/projects/crypto-trading/logs/runtime/direct-notify-state.json')
+STATE_PATH = Path('/root/.openclaw/workspace/projects/quantitative-trading/logs/runtime/direct-notify-state.json')
 
 
 class DiscordNotifier:

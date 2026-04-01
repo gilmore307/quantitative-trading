@@ -62,6 +62,17 @@ systemctl restart quantitative-trading.service
 - dry-run vs live-trade state isolation still needs tightening
 - when investigating execution anomalies, prefer stopping the daemon first, then repairing exchange/local state, then restarting cleanly
 
+## Bootstrap note
+
+At the current migration stage, this repo should be bootstrapped with a **repo-local virtual environment** rather than system-wide package installation.
+
+Recommended pattern:
+- `python3 -m venv .venv`
+- `.venv/bin/pip install -r requirements.txt`
+- run entrypoints via `.venv/bin/python ...`
+
+This keeps the live-runtime repo reversible and avoids mutating the host Python environment during migration.
+
 ## Main code / script touchpoints
 
 - `src/runners/trade_daemon.py`

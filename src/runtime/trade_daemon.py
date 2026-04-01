@@ -154,25 +154,30 @@ def main() -> None:
             result = pipeline.run_cycle_active_strategy()
             artifact = persist_active_strategy_execution_artifact(result)
             summary = artifact.get('summary', {}) if isinstance(artifact, dict) else {}
-            primary_summary = summary.get('primary_summary') or {}
+            primary = artifact.get('result', {}) if isinstance(artifact, dict) else {}
+            primary_summary = primary.get('summary', {}) if isinstance(primary, dict) else {}
             cycle_event = {
                 'event': 'cycle_ok',
                 'observed_at': cycle_started_at,
                 'runtime_mode': summary.get('runtime_mode'),
                 'active_strategy_version': summary.get('active_strategy_version'),
+                'active_strategy_family': summary.get('active_strategy_family'),
+                'active_strategy_name': summary.get('active_strategy_name'),
                 'symbol': summary.get('symbol'),
                 'regime': summary.get('regime'),
-                'entered_accounts': summary.get('entered_accounts'),
-                'accepted_accounts': summary.get('accepted_accounts'),
-                'blocked_accounts': summary.get('blocked_accounts'),
-                'strategy_results': summary.get('strategy_results'),
+                'plan_action': primary_summary.get('plan_action'),
+                'plan_account': primary_summary.get('plan_account'),
+                'trade_enabled': primary_summary.get('trade_enabled'),
+                'pipeline_entered': primary_summary.get('pipeline_entered'),
+                'submission_allowed': primary_summary.get('submission_allowed'),
+                'submission_attempted': primary_summary.get('submission_attempted'),
+                'block_reason': primary_summary.get('block_reason'),
+                'allow_reason': primary_summary.get('allow_reason'),
             }
             _log_event(cycle_event)
 
-            for row in (artifact.get('results') or {}).values():
-                row_summary = row.get('summary', {}) if isinstance(row, dict) else {}
-                notifier.notify_trade(row_summary, row)
-                notifier.notify_warning(row_summary)
+            notifier.notify_trade(primary_summary, primary)
+            notifier.notify_warning(primary_summary)
         except Exception as exc:
             error_event = {
                 'event': 'cycle_error',

@@ -6,8 +6,8 @@
 - remove stale parallel / compare / router-composite compatibility layers only where the dummy path proves they are not needed
 
 ## Immediate next actions
-1. add minimal Python project metadata / dependency manifest so the repo can be bootstrapped and smoke-tested directly
-2. make `python3 -m src.execution_cycle` and bounded `trade_daemon` runnable in a clean environment
+1. finish the repo-local `.venv` bootstrap path and dependency manifest so the repo can be smoke-tested directly
+2. make `.venv/bin/python -m src.execution_cycle` and bounded `trade_daemon` runnable in a clean environment
 3. simplify `src/execution_cycle.py` so its active-strategy artifact path does not depend on legacy compare/router-composite summary fields
 4. re-run the dummy bounded daemon flow and verify these artifacts:
    - `logs/runtime/active-strategy.json`

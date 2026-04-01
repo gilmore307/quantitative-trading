@@ -1,0 +1,19 @@
+[project]
+name = "quantitative-trading"
+version = "0.1.0"
+description = "Realtime trading, execution, runtime operations, and live monitoring codebase."
+requires-python = ">=3.12"
+dependencies = [
+  "pydantic>=2,<3",
+  "python-dotenv>=1,<2",
+  "requests>=2,<3",
+  "websocket-client>=1,<2",
+  "websockets>=12,<16",
+  "ccxt>=4,<5",
+]
+
+[tool.openclaw]
+bootstrap = [
+  "python3 -m venv .venv",
+  ".venv/bin/pip install -r requirements.txt",
+]
