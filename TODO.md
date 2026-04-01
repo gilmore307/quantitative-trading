@@ -21,6 +21,11 @@
      - `dummy-v2` => enter, hold ~3s, exit, hold ~3s, repeat
    - invocation: `.venv/bin/python -m src.runtime.trade_daemon --dummy-live-cycle --interval-seconds 1 --max-cycles N`
 6. next: expose/record upgrade-event behavior while switching from dummy-v1 to dummy-v2 mid-run
+   - hot-swap detection + upgrade request emission already verified
+   - out-of-band request consumer (`src.upgrade.process_strategy_upgrade_request`) now also runs successfully and writes:
+     - `logs/runtime/latest-strategy-upgrade-result.json`
+     - `logs/runtime/latest-strategy-handover-marker.json`
+   - remaining cleanup: bucket/account reset logic inside upgrade workflow still reflects old multi-account family assumptions
 7. only after the dummy path is proven, continue deleting stale review/compare/shadow-plan compatibility code
 
 ## Known blockers

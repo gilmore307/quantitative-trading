@@ -143,3 +143,17 @@ A successful dummy strategy validation should prove:
 5. out-of-band consumer produces upgrade result + handover marker
 6. review side can consume the resulting runtime artifacts
 7. after this pass, we can confidently identify true dead files
+
+## Current verified status
+
+Already verified in `quantitative-trading`:
+- dummy promotion writes active pointer
+- daemon detects live hot-swap from `dummy-v1` to `dummy-v2`
+- daemon emits `strategy_upgrade_event_requested`
+- daemon changes dummy execution cadence from 5 seconds to 3 seconds after promotion
+- out-of-band consumer writes:
+  - `logs/runtime/latest-strategy-upgrade-result.json`
+  - `logs/runtime/latest-strategy-handover-marker.json`
+
+Remaining mismatch still visible after this validation:
+- upgrade workflow internals still reset/check old multi-account family buckets/accounts (`trend`, `crowded`, `meanrev`, `compression`, `realtime`) even though the newer live architecture is centered on a single promoted active model path

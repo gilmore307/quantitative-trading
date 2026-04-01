@@ -8,7 +8,7 @@ from pathlib import Path
 from src.state.execution_ledger import ExecutionLeg, ExitAllocation, ExitExecution
 from src.state.live_position import LivePosition, LivePositionStatus
 
-STATE_PATH = Path('/root/.openclaw/workspace/projects/crypto-trading/logs/runtime/live-state-store.json')
+STATE_PATH = Path('/root/.openclaw/workspace/projects/quantitative-trading/logs/runtime/live-state-store.json')
 
 
 def _dt(value):

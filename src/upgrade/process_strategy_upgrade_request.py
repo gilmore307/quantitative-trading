@@ -42,9 +42,9 @@ def main() -> None:
         print(json.dumps({'status': 'no_request'}, ensure_ascii=False))
         return
     request = json.loads(UPGRADE_REQUEST_PATH.read_text(encoding='utf-8'))
-    state = LiveStateStore().load()
+    state = LiveStateStore()
     open_positions = []
-    for row in state.positions.values():
+    for row in state.list_positions():
         if row is None:
             continue
         size = float(row.size or 0.0)
