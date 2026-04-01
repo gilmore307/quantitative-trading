@@ -3,14 +3,11 @@ from __future__ import annotations
 import json
 from dataclasses import asdict
 from datetime import UTC, datetime
-from pathlib import Path
 from typing import Any
 
 from src.execution.pipeline import ExecutionCycleResult, ExecutionPipeline, ActiveStrategyExecutionResult
 from src.review.account_metrics import build_account_metrics_from_cycle
-from src.review.compare import build_compare_snapshot
 from src.state.log_paths import RUNTIME_DIR, dated_jsonl_path
-from src.strategies.executors import build_shadow_plans
 
 
 OUT_DIR = RUNTIME_DIR
@@ -18,7 +15,6 @@ LATEST_PATH = OUT_DIR / 'latest-execution-cycle.json'
 HISTORY_PATH = lambda: dated_jsonl_path('execution-cycles')
 ANOMALY_HISTORY_PATH = lambda: dated_jsonl_path('execution-anomalies')
 REGIME_HISTORY_PATH = lambda: dated_jsonl_path('regime-local-history')
-STRATEGY_ACTIVITY_PATH = lambda: dated_jsonl_path('strategy-activity-history')
 
 
 def _resolve_path(path_or_factory):
@@ -171,9 +167,7 @@ def build_execution_artifact(result: ExecutionCycleResult) -> dict[str, Any]:
     payload = asdict(result)
     payload['artifact_type'] = 'execution_cycle'
     payload['recorded_at'] = datetime.now(UTC).isoformat()
-    payload['compare_snapshot'] = build_compare_snapshot(result)
     payload['feature_snapshot'] = _feature_snapshot(result)
-    payload['shadow_plans'] = build_shadow_plans(result.regime_output)
     payload['verification_snapshot'] = _verification_snapshot(result)
     payload['attribution_snapshot'] = _build_attribution_snapshot(result)
     payload['ledger_snapshot'] = None if result.local_position is None else {
@@ -279,11 +273,6 @@ def build_execution_artifact(result: ExecutionCycleResult) -> dict[str, Any]:
         'route_enabled': None if result.route_state is None else result.route_state.get('enabled'),
         'route_frozen_reason': None if result.route_state is None else result.route_state.get('frozen_reason'),
         'live_position_count': len(result.live_positions),
-        'composite_selected_strategy': result.router_composite.get('selected_strategy'),
-        'composite_position_owner': result.router_composite.get('position_owner'),
-        'composite_plan_action': result.router_composite.get('plan', {}).get('action'),
-        'composite_position_side': None if result.router_composite.get('position') is None else result.router_composite.get('position', {}).get('side'),
-        'composite_switch_action': result.router_composite.get('switch_action'),
         'receipt_mode': None if result.receipt is None else result.receipt.mode,
         'receipt_accepted': None if result.receipt is None else result.receipt.accepted,
         'alignment_ok': None if result.reconcile_result is None else result.reconcile_result.alignment.ok,
@@ -298,34 +287,6 @@ def build_execution_artifact(result: ExecutionCycleResult) -> dict[str, Any]:
         **stats_summary,
     }
     return payload
-
-
-def _build_strategy_activity_artifacts(artifact: dict[str, Any]) -> list[dict[str, Any]]:
-    rows = []
-    summary = artifact.get('summary') if isinstance(artifact.get('summary'), dict) else {}
-    for strategy_name, plan in (artifact.get('shadow_plans') or {}).items():
-        if not isinstance(plan, dict):
-            continue
-        rows.append({
-            'artifact_type': 'strategy_activity',
-            'recorded_at': artifact.get('recorded_at'),
-            'symbol': summary.get('symbol'),
-            'runtime_mode': summary.get('runtime_mode'),
-            'active_strategy_version': summary.get('active_strategy_version'),
-            'active_strategy_family': summary.get('active_strategy_family'),
-            'final_regime': summary.get('regime'),
-            'strategy_name': strategy_name,
-            'action': plan.get('action'),
-            'side': plan.get('side'),
-            'account': plan.get('account'),
-            'reason': plan.get('reason'),
-            'size': plan.get('size'),
-            'selected_strategy_family': summary.get('route_strategy_family'),
-            'composite_switch_action': summary.get('composite_switch_action'),
-            'selected_plan_action': summary.get('plan_action'),
-            'strategy_stats_eligible': summary.get('strategy_stats_eligible'),
-        })
-    return rows
 
 
 def _build_regime_local_artifact(result: ExecutionCycleResult, artifact: dict[str, Any]) -> dict[str, Any]:
@@ -353,7 +314,6 @@ def _build_regime_local_artifact(result: ExecutionCycleResult, artifact: dict[st
         'strategy_stats_reason': summary.get('strategy_stats_reason'),
         'account_metrics': summary.get('account_metrics'),
         'feature_snapshot': artifact.get('feature_snapshot'),
-        'shadow_plans': artifact.get('shadow_plans'),
     }
 
 
@@ -407,11 +367,6 @@ def persist_execution_artifact(result: ExecutionCycleResult) -> dict[str, Any]:
     regime_local = _build_regime_local_artifact(result, artifact)
     with _resolve_path(REGIME_HISTORY_PATH).open('a', encoding='utf-8') as handle:
         handle.write(json.dumps(regime_local, default=_json_default, ensure_ascii=False) + '\n')
-    activity_rows = _build_strategy_activity_artifacts(artifact)
-    if activity_rows:
-        with _resolve_path(STRATEGY_ACTIVITY_PATH).open('a', encoding='utf-8') as handle:
-            for row in activity_rows:
-                handle.write(json.dumps(row, default=_json_default, ensure_ascii=False) + '\n')
     anomaly = _build_anomaly_artifact(result, artifact)
     if anomaly is not None:
         with _resolve_path(ANOMALY_HISTORY_PATH).open('a', encoding='utf-8') as handle:
