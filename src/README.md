@@ -6,7 +6,14 @@ Current status:
 - `flows/` remains the migration workspace and process-oriented reorganization layer
 - `src/` is where stabilized realtime code starts being promoted into its long-term package layout
 
-## First promoted packages
+## Current package skeleton
+
+### `src/runtime/`
+Live daemon/runtime semantics:
+- trade daemon
+- mode / mode policy
+- workflow / workflows
+- runtime helpers such as business time and bucket state
 
 ### `src/upgrade/`
 Promotion-time live runtime handling:
@@ -29,6 +36,12 @@ Live review / upgrade-validation pipeline:
 - metrics / aggregation / performance
 - report building
 - export
+
+### `src/state/`
+Live state support:
+- state store
+- live positions
+- state/runtime log paths
 
 ## Migration rule
 
