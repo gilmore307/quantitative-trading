@@ -15,15 +15,8 @@ def load_model_inputs(active_strategy: ActiveStrategySnapshot | None = None, pat
     paths = [p for p in [candidate, DEFAULT_MODEL_INPUTS_PATH] if p is not None]
     for p in paths:
         if p.exists():
-            try:
-                payload = json.loads(p.read_text(encoding='utf-8'))
-                if isinstance(payload, dict):
-                    return payload
-            except Exception:
-                pass
-    label = None if active_strategy is None else (active_strategy.metadata or {}).get('family') or active_strategy.version
-    return {
-        'active_strategy_label': label or 'runtime-default',
-        'label_parameters': {},
-        'strategy_mapping': {},
-    }
+            payload = json.loads(p.read_text(encoding='utf-8'))
+            if not isinstance(payload, dict):
+                raise RuntimeError('invalid_model_inputs_payload')
+            return payload
+    raise RuntimeError('missing_model_inputs')

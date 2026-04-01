@@ -45,8 +45,11 @@ class BtcRegimeRunner:
         self.ws = OkxPublicWsClient(self.hub, symbol=symbol)
         active = load_active_strategy_snapshot()
         model_inputs = load_model_inputs(active)
-        label_parameters = model_inputs.get('label_parameters') if isinstance(model_inputs, dict) else {}
-        self.layered = LayeredRegimeClassifier(parameters=label_parameters if isinstance(label_parameters, dict) else {})
+        label_parameters = model_inputs.get('label_parameters') if isinstance(model_inputs, dict) else None
+        if not isinstance(label_parameters, dict):
+            raise RuntimeError('missing_label_parameters')
+        self.settings.model_inputs = model_inputs
+        self.layered = LayeredRegimeClassifier(parameters=label_parameters)
 
     def _decision_dict(self, decision):
         if decision is None:

@@ -26,7 +26,11 @@
      - `logs/runtime/latest-strategy-upgrade-result.json`
      - `logs/runtime/latest-strategy-handover-marker.json`
 7. continue deleting stale review/compare/shadow-plan compatibility code and family-account config residue from `src/`
-8. keep `src/` as the only authoritative code tree; do not reintroduce a parallel migration code tree
+8. provide the required runtime model input bundle at `logs/runtime/active-model-inputs.json`
+   - must include `label_parameters`
+   - must include `strategy_mapping`
+   - without this bundle, runtime now fails closed and does not trade
+9. keep `src/` as the only authoritative code tree; do not reintroduce a parallel migration code tree
 
 ## Known blockers
 - repo currently has no `pyproject.toml` / `requirements.txt`, so even basic execution currently fails on missing deps such as `python-dotenv`

@@ -19,8 +19,19 @@ class RuleBasedRegimeClassifier:
     hard-coded into the runtime architecture.
     """
 
+    REQUIRED_KEYS = {
+        'trend_adx_low', 'trend_adx_high', 'trend_vwap_z_min', 'trend_vwap_z_scale',
+        'range_adx_cap', 'range_adx_window', 'range_vwap_z_min', 'range_vwap_z_max',
+        'compression_bandwidth_cap', 'compression_bandwidth_window', 'compression_realized_vol_scale',
+        'crowded_funding_floor', 'crowded_funding_window', 'shock_activation_threshold',
+        'crowded_activation_threshold', 'label_activation_threshold', 'label_gap_threshold',
+    }
+
     def __init__(self, parameters: dict[str, Any] | None = None):
         self.parameters = parameters or {}
+        missing = sorted(key for key in self.REQUIRED_KEYS if key not in self.parameters)
+        if missing:
+            raise RuntimeError(f"missing_label_parameters:{','.join(missing)}")
 
     def _value(self, key: str, default: float) -> float:
         value = self.parameters.get(key, default)

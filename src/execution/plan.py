@@ -23,8 +23,17 @@ class ExecutionPlan:
 def build_active_strategy_plan(output: RegimeRunnerOutput, active_strategy: ActiveStrategySnapshot | None = None) -> ExecutionPlan:
     label = str((active_strategy.version if active_strategy is not None else '') or ((active_strategy.metadata or {}).get('family') if active_strategy is not None else '') or 'active_live').lower()
     account = output.route_decision.get('account')
+    model_inputs = getattr(output.settings, 'model_inputs', None) if output.settings is not None else None
+    if not isinstance(model_inputs, dict):
+        return ExecutionPlan(regime=str(output.final_decision.get('primary') or 'active_live'), account=None, action='hold', reason='missing_model_inputs')
+    strategy_mapping = model_inputs.get('strategy_mapping')
+    if not isinstance(strategy_mapping, dict) or not strategy_mapping:
+        return ExecutionPlan(regime=str(output.final_decision.get('primary') or 'active_live'), account=None, action='hold', reason='missing_strategy_mapping')
     if account is None:
         return ExecutionPlan(regime=str(output.final_decision.get('primary') or 'active_live'), account=None, action='hold', reason='no_active_live_account')
+    mapped_strategy = strategy_mapping.get(str(output.final_decision.get('primary') or '').lower())
+    if not mapped_strategy:
+        return ExecutionPlan(regime=str(output.final_decision.get('primary') or 'active_live'), account=None, action='hold', reason='missing_label_strategy_mapping')
     if label in {'dummy-v1', 'dummy-v2', 'dummy', 'runtime-default', 'default', 'active_live'}:
         return ExecutionPlan(
             regime=str(output.final_decision.get('primary') or label),
