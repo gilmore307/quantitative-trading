@@ -5,10 +5,9 @@ from datetime import UTC, date, datetime
 from pathlib import Path
 from typing import Any, Iterable
 
-from src.review.compare import FLAT_COMPARE_ALIAS
 from src.review.history_loader import load_jsonl_rows
 from src.review.ingestion import canonicalize_history_row
-from src.review.performance import DEFAULT_COMPARE_ACCOUNTS
+from src.review.performance import DEFAULT_COMPARE_ACCOUNTS, FLAT_COMPARE_ALIAS
 from src.runtime.business_time import business_midnight
 
 
@@ -184,18 +183,8 @@ def aggregate_from_execution_history(
         if plan_account in counts and plan_action in {'enter', 'exit'} and receipt_accepted is not False and strategy_stats_eligible:
             counts[plan_account] += 1
 
-        compare_snapshot = row.get('compare_snapshot', {})
-        for account_row in compare_snapshot.get('accounts', []):
-            alias = account_row.get('account')
-            if alias in exposure_counts and account_row.get('has_position'):
-                exposure_counts[alias] += 1
-
-        composite_owner = summary.get('composite_position_owner')
-        composite_action = summary.get('composite_plan_action')
-        if composite_owner == 'router_composite' and composite_action in {'enter', 'exit'}:
-            counts['router_composite'] += 1
-        elif composite_owner in counts and composite_action in {'enter', 'exit'}:
-            counts['router_composite'] += 1
+        if plan_account in exposure_counts and summary.get('position_open_during_cycle'):
+            exposure_counts[plan_account] += 1
 
         canonical_metrics = canonicalize_history_row(row)
         for alias, metric_row in canonical_metrics.items():

@@ -2,8 +2,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from src.review.compare import FLAT_COMPARE_ALIAS
-from src.review.performance import DEFAULT_COMPARE_ACCOUNTS
+from src.review.performance import DEFAULT_COMPARE_ACCOUNTS, FLAT_COMPARE_ALIAS
 
 
 CANONICAL_NUMERIC_FIELDS = (
@@ -91,7 +90,7 @@ def canonicalize_history_row(row: dict[str, Any]) -> dict[str, dict[str, float]]
     Current priority:
     1. receipt.raw / receipt-level performance hints
     2. summary.account_metrics canonical payload
-    3. compare_snapshot embedded performance rows
+    3. active-strategy primary summary when available
 
     The extractor is intentionally permissive so runtime artifacts can evolve
     without forcing repeated review-pipeline rewrites.
@@ -120,16 +119,16 @@ def canonicalize_history_row(row: dict[str, Any]) -> dict[str, dict[str, float]]
             target = metrics.setdefault(alias, {})
             _merge_metric_fields(target, raw, overwrite=True)
 
-    compare_snapshot = row.get('compare_snapshot') or {}
-    for account_row in compare_snapshot.get('accounts', []) if isinstance(compare_snapshot, dict) else []:
-        if not isinstance(account_row, dict):
-            continue
-        alias = account_row.get('account')
-        if alias not in DEFAULT_COMPARE_ACCOUNTS:
-            continue
-        target = metrics.setdefault(alias, {})
-        _merge_metric_fields(target, account_row, overwrite=True)
+    primary_summary = None
+    if isinstance(row.get('summary'), dict) and isinstance(row['summary'].get('primary_summary'), dict):
+        primary_summary = row['summary']['primary_summary']
+    elif isinstance(row.get('result'), dict) and isinstance(row['result'].get('summary'), dict):
+        primary_summary = row['result']['summary']
+    if isinstance(primary_summary, dict):
+        alias = primary_summary.get('plan_account') or primary_summary.get('route_account')
+        if alias in DEFAULT_COMPARE_ACCOUNTS:
+            target = metrics.setdefault(alias, {})
+            _merge_metric_fields(target, primary_summary, overwrite=False)
 
-    # Keep flat compare addressable even when no explicit row exists.
     metrics.setdefault(FLAT_COMPARE_ALIAS, {})
     return metrics
