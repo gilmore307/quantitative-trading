@@ -1,4 +1,0 @@
-{
-  "last_error_fingerprint": "error|AttributeError(\"'ExecutionCycleResult' object has no attribute 'result'\")",
-  "last_trade_fingerprint": "trade|enter|active_live|BTC-USDT-SWAP|dry-run-entry|dry_run"
-}

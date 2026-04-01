@@ -13,15 +13,6 @@ class Regime(StrEnum):
     CHAOTIC = "chaotic"
 
 
-TRADABLE_REGIMES = {
-    Regime.TREND,
-    Regime.RANGE,
-    Regime.COMPRESSION,
-    Regime.CROWDED,
-    Regime.SHOCK,
-}
-
-
 @dataclass(slots=True)
 class RegimeDecision:
     primary: Regime
@@ -32,4 +23,4 @@ class RegimeDecision:
 
     @property
     def tradable(self) -> bool:
-        return self.primary in TRADABLE_REGIMES
+        return True

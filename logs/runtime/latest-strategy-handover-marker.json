@@ -1,8 +1,0 @@
-{
-  "observed_at": "2026-04-01T18:23:19.112140+00:00",
-  "active_strategy_version": "dummy-v2",
-  "previous_version": "dummy-v1",
-  "handover_action": "no_open_position",
-  "handover_reason": "no_open_positions_detected_at_request_processing_time",
-  "position_handover_policy": "strategy_switch_handling"
-}
