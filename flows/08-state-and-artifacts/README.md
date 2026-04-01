@@ -11,16 +11,24 @@ This flow step covers persistent live state and the artifact/state boundary used
 
 ## Current contents
 
-- `src/state/store.py`
-- `src/state/live_position.py`
-- `src/state/models.py`
-- `src/runtime/store.py`
-- `src/runtime/log_paths.py`
+### live-state
+- `live-state/store.py`
+
+### position
+- `position/live_position.py`
+
+### models
+- `models/models.py`
+
+### runtime-state
+- `runtime-state/store.py`
+- `runtime-state/log_paths.py`
 
 ## Likely next additions
 
 - handover marker helpers if extracted
-- any additional state serializers or runtime-state wrappers needed by upgrade processing
+- additional state serializers used by upgrade processing
+- pointer/state bridge helpers if they separate from the main runtime modules
 
 ## Expected future home
 
