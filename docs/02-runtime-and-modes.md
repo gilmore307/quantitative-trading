@@ -20,7 +20,7 @@ They are events/jobs that happen around the always-on trade daemon.
 
 - `strategy_upgrade_event` — the canonical promotion-triggered upgrade event
 - `review` — upgrade validation / execution diagnosis sub-step
-- `calibrate` — deprecated legacy label; not part of the default strategy-upgrade flow anymore
+- `calibrate` — removed legacy label; not part of the default strategy-upgrade flow anymore
 
 ## Core runtime interpretation
 

@@ -29,7 +29,7 @@ def load_active_strategy_snapshot() -> ActiveStrategySnapshot:
             payload = json.loads(ACTIVE_STRATEGY_POINTER_PATH.read_text(encoding='utf-8'))
         except Exception:
             payload = {}
-        version = str(payload.get('version') or 'legacy-default')
+        version = str(payload.get('version') or 'runtime-default')
         updated_at = str(payload.get('updated_at') or _utc_now_iso())
         source = str(payload.get('source') or str(ACTIVE_STRATEGY_POINTER_PATH))
         metadata = payload.get('metadata') if isinstance(payload.get('metadata'), dict) else {}
@@ -40,11 +40,11 @@ def load_active_strategy_snapshot() -> ActiveStrategySnapshot:
         return ActiveStrategySnapshot(version=version, updated_at=updated_at, source=source, metadata=metadata)
 
     snapshot = ActiveStrategySnapshot(
-        version='legacy-default',
+        version='runtime-default',
         updated_at=_utc_now_iso(),
         source='implicit_runtime_default',
         metadata={
-            'note': 'active strategy pointer not initialized; using legacy runtime default',
+            'note': 'active strategy pointer not initialized; using runtime default',
             'family': 'default',
             'config_path': '',
             'promoted_at': _utc_now_iso(),

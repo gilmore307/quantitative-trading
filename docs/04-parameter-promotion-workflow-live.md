@@ -37,7 +37,7 @@ It now centers on:
 - position handover observation / decision / marker
 - review / execution-diagnosis work
 
-`calibrate` is deprecated in the strategy-switch flow and is no longer part of the default promotion-time event path.
+The old `calibrate` concept has been removed from the strategy-switch flow and is no longer part of the default promotion-time event path.
 
 ## Position handling rule
 

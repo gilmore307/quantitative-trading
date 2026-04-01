@@ -40,13 +40,13 @@
         {
           "name": "run_review",
           "ok": true,
-          "detail": "json=/root/.openclaw/workspace/projects/quantitative-trading/reports/trade-review/20260401T184707Z_weekly_2026-03-23__2026-03-30.json markdown=/root/.openclaw/workspace/projects/quantitative-trading/reports/trade-review/20260401T184707Z_weekly_2026-03-23__2026-03-30.md"
+          "detail": "json=/root/.openclaw/workspace/projects/quantitative-trading/reports/trade-review/20260401T191354Z_weekly_2026-03-23__2026-03-30.json markdown=/root/.openclaw/workspace/projects/quantitative-trading/reports/trade-review/20260401T191354Z_weekly_2026-03-23__2026-03-30.md"
         }
       ],
-      "observed_at": "2026-04-01 18:47:07.781140+00:00"
+      "observed_at": "2026-04-01 19:13:54.007099+00:00"
     },
     "started_mode": "trade",
     "ended_mode": "trade",
-    "observed_at": "2026-04-01T18:47:07.781407+00:00"
+    "observed_at": "2026-04-01T19:13:54.007444+00:00"
   }
 }

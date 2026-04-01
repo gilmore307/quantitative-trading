@@ -70,24 +70,7 @@ def acquire_single_instance_lock():
 def ensure_trade_start_ready(*, settings: Settings, runtime_store: RuntimeStore, hooks: WorkflowHooks | None = None) -> WorkflowRunResult | None:
     if runtime_store.get().mode != RuntimeMode.TRADE:
         return None
-    hooks = hooks or OkxWorkflowHooks(settings)
-    startup = hooks.verify_startup_capital()
-    if startup.ok:
-        return None
-    _log_event({
-        'event': 'trade_start_not_ready',
-        'observed_at': datetime.now(UTC),
-        'detail': startup.detail,
-        'action': 'continue_trade_daemon_without_mode_switch',
-    })
-    return WorkflowRunResult(
-        workflow='startup_readiness_check',
-        started_mode=RuntimeMode.TRADE.value,
-        ended_mode=RuntimeMode.TRADE.value,
-        destructive=False,
-        steps=[startup],
-        observed_at=datetime.now(UTC),
-    )
+    return None
 
 
 def main() -> None:

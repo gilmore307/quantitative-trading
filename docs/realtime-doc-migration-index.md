@@ -24,7 +24,7 @@ Use these docs to derive the first wave of code/script migration into `quantitat
 The repo now has enough migrated `src/` code to attempt the dummy live-side E2E path, but it is not yet self-bootstrapable or cleanly converged:
 
 - there is still no Python dependency manifest in the repo, so direct smoke tests currently fail on missing packages such as `python-dotenv`
-- `src/execution_cycle.py` still carries legacy compare / shadow-plan / router-composite oriented artifact logic
+- `src/execution_cycle.py` has been substantially cleaned up; remaining work is mostly final artifact/documentation sweep rather than old compare / shadow-plan / router-composite removal
 - `src/runtime/trade_daemon.py` still partially assumes the older execution summary shape
 
 So the immediate code migration priority is:
