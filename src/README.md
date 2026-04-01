@@ -14,6 +14,7 @@ Live daemon/runtime semantics:
 - mode / mode policy
 - workflow / workflows
 - runtime helpers such as business time and bucket state
+- runtime-side regime runner / live decision input bridge
 
 ### `src/upgrade/`
 Promotion-time live runtime handling:
@@ -29,6 +30,7 @@ Live execution pipeline components:
 - confirmation
 - exchange snapshot / adapters
 - identifiers / locks
+- temporary decision-bridge helpers absorbed from the old `07` flow
 
 ### `src/review/`
 Live review / upgrade-validation pipeline:
@@ -42,6 +44,12 @@ Live state support:
 - state store
 - live positions
 - state/runtime log paths
+
+### `src/ops/`
+Live runtime operational helpers:
+- monitors
+- alert watchers
+- notifications
 
 ## Migration rule
 
