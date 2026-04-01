@@ -76,8 +76,6 @@ The live side should be able to record:
 - `src/runners/strategy_upgrade_event.py`
 - `src/runners/review_event.py`
 
-Deprecated legacy path (no longer part of default upgrade switching):
-- `src/runners/calibrate_event.py`
 
 ### Artifact tagging
 - `src/execution/pipeline.py`

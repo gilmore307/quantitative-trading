@@ -99,7 +99,6 @@ It may remain a live input bridge, or it may shrink further.
 
 ### 4. Legacy compatibility substeps may prove redundant
 - `review_event.py`
-- `calibrate_event.py`
 
 These may survive only as internal upgrade-event helpers, or may become deletable after the unified path is proven.
 

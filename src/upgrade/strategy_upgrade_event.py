@@ -9,7 +9,7 @@ from src.runtime.workflows import OkxWorkflowHooks, run_strategy_upgrade_event
 
 def build_arg_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description='Run unified strategy upgrade event workflow for quantitative-trading.')
-    parser.add_argument('--destructive', action='store_true', help='Reserved compatibility flag; current upgrade event no longer runs calibrate/reset actions.')
+    parser.add_argument('--destructive', action='store_true', help='Deprecated compatibility flag; ignored by the current upgrade event path.')
     return parser
 
 

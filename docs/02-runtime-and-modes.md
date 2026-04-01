@@ -35,15 +35,15 @@ The daemon should:
 - continue trading with the new active strategy version once detected
 - emit upgrade-related request artifacts out-of-band instead of blocking the main loop
 
-### Review / calibrate are not modes
+### Review is not a mode
 
-`review` and `calibrate` should no longer be treated as standalone runtime modes.
+`review` should no longer be treated as a standalone runtime mode.
 
-They are now best understood as:
-- compatibility labels
-- helper/event concepts
+It is best understood as:
+- a helper/event concept
+- a sub-step of the broader `strategy_upgrade_event`
 
-Only `review` remains part of the default `strategy_upgrade_event` flow. `calibrate` is deprecated for strategy switching because strategy performance is measured from segment-start account state to segment-end account state rather than by forcing a reset baseline.
+The old `calibrate` concept has been removed from the default strategy-switch flow because strategy performance is measured from segment-start account state to segment-end account state rather than by forcing a reset baseline.
 
 ## Strategy hot-swap model
 

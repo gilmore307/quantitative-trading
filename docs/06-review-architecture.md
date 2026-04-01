@@ -105,4 +105,3 @@ A full upgrade-oriented review should be able to describe:
 - `src/runtime/workflows.py`
 - `src/runners/strategy_upgrade_event.py`
 - `src/runners/review_event.py`
-- `src/runners/calibrate_event.py`
