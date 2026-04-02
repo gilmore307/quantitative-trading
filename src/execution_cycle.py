@@ -214,14 +214,73 @@ def _verification_snapshot(result: ExecutionCycleResult) -> dict[str, Any]:
     }
 
 
+def _build_ledger_snapshot(result: ExecutionCycleResult) -> dict[str, Any] | None:
+    local = result.local_position
+    if local is None:
+        return None
+    return {
+        'open_legs': [
+            {
+                'leg_id': leg.leg_id,
+                'execution_id': leg.execution_id,
+                'client_order_id': leg.client_order_id,
+                'order_id': leg.order_id,
+                'trade_ids': leg.trade_ids,
+                'side': leg.side,
+                'requested_size': leg.requested_size,
+                'filled_size': leg.filled_size,
+                'remaining_size': leg.remaining_size,
+                'status': leg.status,
+                'reason': leg.reason,
+            }
+            for leg in local.open_legs
+        ],
+        'closed_legs': [
+            {
+                'leg_id': leg.leg_id,
+                'execution_id': leg.execution_id,
+                'client_order_id': leg.client_order_id,
+                'order_id': leg.order_id,
+                'trade_ids': leg.trade_ids,
+                'side': leg.side,
+                'requested_size': leg.requested_size,
+                'filled_size': leg.filled_size,
+                'remaining_size': leg.remaining_size,
+                'status': leg.status,
+                'close_execution_id': leg.close_execution_id,
+                'close_client_order_id': leg.close_client_order_id,
+                'close_order_id': leg.close_order_id,
+                'close_trade_ids': leg.close_trade_ids,
+            }
+            for leg in local.closed_legs
+        ],
+        'pending_exit': None if local.pending_exit is None else {
+            'execution_id': local.pending_exit.execution_id,
+            'client_order_id': local.pending_exit.client_order_id,
+            'order_id': local.pending_exit.order_id,
+            'trade_ids': local.pending_exit.trade_ids,
+            'requested_size': local.pending_exit.requested_size,
+            'side': local.pending_exit.side,
+            'status': local.pending_exit.status,
+            'reason': local.pending_exit.reason,
+            'allocations': [
+                {
+                    'leg_id': alloc.leg_id,
+                    'requested_size': alloc.requested_size,
+                    'closed_size': alloc.closed_size,
+                    'trade_ids': alloc.trade_ids,
+                    'fee_usdt': alloc.fee_usdt,
+                    'realized_pnl_usdt': alloc.realized_pnl_usdt,
+                }
+                for alloc in local.pending_exit.allocations
+            ],
+        },
+    }
+
+
 def _build_attribution_snapshot(result: ExecutionCycleResult) -> dict[str, Any]:
     receipt = result.receipt
     local = result.local_position
-    ledger = None if local is None else {
-        'open_leg_ids': [leg.leg_id for leg in local.open_legs],
-        'closed_leg_ids': [leg.leg_id for leg in local.closed_legs],
-        'pending_exit_leg_ids': [] if local.pending_exit is None else [alloc.leg_id for alloc in local.pending_exit.allocations],
-    }
     raw = {} if receipt is None or not isinstance(receipt.raw, dict) else receipt.raw
     return {
         'account': None if receipt is None else receipt.account,
@@ -233,7 +292,11 @@ def _build_attribution_snapshot(result: ExecutionCycleResult) -> dict[str, Any]:
         'fee_source': 'fill_aggregation' if raw.get('fill_count') else ('order_payload' if raw.get('fee_usdt') is not None else None),
         'realized_pnl_source': 'fill_aggregation' if raw.get('fill_count') else ('order_payload' if raw.get('realized_pnl_usdt') is not None else None),
         'equity_source': 'balance_summary' if raw.get('equity_end_usdt') is not None or raw.get('equity_usdt') is not None else None,
-        'ledger': ledger,
+        'ledger': None if local is None else {
+            'open_leg_ids': [leg.leg_id for leg in local.open_legs],
+            'closed_leg_ids': [leg.leg_id for leg in local.closed_legs],
+            'pending_exit_leg_ids': [] if local.pending_exit is None else [alloc.leg_id for alloc in local.pending_exit.allocations],
+        },
         'pending_exit_allocations': [] if local is None or local.pending_exit is None else [
             {
                 'leg_id': alloc.leg_id,
@@ -256,64 +319,7 @@ def build_execution_artifact(result: ExecutionCycleResult) -> dict[str, Any]:
     payload['theoretical_snapshot'] = _theoretical_snapshot(result)
     payload['verification_snapshot'] = _verification_snapshot(result)
     payload['attribution_snapshot'] = _build_attribution_snapshot(result)
-    payload['ledger_snapshot'] = None if result.local_position is None else {
-        'open_legs': [
-            {
-                'leg_id': leg.leg_id,
-                'execution_id': leg.execution_id,
-                'client_order_id': leg.client_order_id,
-                'order_id': leg.order_id,
-                'trade_ids': leg.trade_ids,
-                'side': leg.side,
-                'requested_size': leg.requested_size,
-                'filled_size': leg.filled_size,
-                'remaining_size': leg.remaining_size,
-                'status': leg.status,
-                'reason': leg.reason,
-            }
-            for leg in result.local_position.open_legs
-        ],
-        'closed_legs': [
-            {
-                'leg_id': leg.leg_id,
-                'execution_id': leg.execution_id,
-                'client_order_id': leg.client_order_id,
-                'order_id': leg.order_id,
-                'trade_ids': leg.trade_ids,
-                'side': leg.side,
-                'requested_size': leg.requested_size,
-                'filled_size': leg.filled_size,
-                'remaining_size': leg.remaining_size,
-                'status': leg.status,
-                'close_execution_id': leg.close_execution_id,
-                'close_client_order_id': leg.close_client_order_id,
-                'close_order_id': leg.close_order_id,
-                'close_trade_ids': leg.close_trade_ids,
-            }
-            for leg in result.local_position.closed_legs
-        ],
-        'pending_exit': None if result.local_position.pending_exit is None else {
-            'execution_id': result.local_position.pending_exit.execution_id,
-            'client_order_id': result.local_position.pending_exit.client_order_id,
-            'order_id': result.local_position.pending_exit.order_id,
-            'trade_ids': result.local_position.pending_exit.trade_ids,
-            'requested_size': result.local_position.pending_exit.requested_size,
-            'side': result.local_position.pending_exit.side,
-            'status': result.local_position.pending_exit.status,
-            'reason': result.local_position.pending_exit.reason,
-            'allocations': [
-                {
-                    'leg_id': alloc.leg_id,
-                    'requested_size': alloc.requested_size,
-                    'closed_size': alloc.closed_size,
-                    'trade_ids': alloc.trade_ids,
-                    'fee_usdt': alloc.fee_usdt,
-                    'realized_pnl_usdt': alloc.realized_pnl_usdt,
-                }
-                for alloc in result.local_position.pending_exit.allocations
-            ],
-        },
-    }
+    payload['ledger_snapshot'] = _build_ledger_snapshot(result)
     balance_summary = _balance_summary_for_result(result)
     stats_summary = _strategy_stats_summary(result)
     ledger_open_size = 0.0 if result.local_position is None else float(result.local_position.ledger_open_size or 0.0)
@@ -383,8 +389,12 @@ def build_execution_artifact(result: ExecutionCycleResult) -> dict[str, Any]:
     return payload
 
 
+def _artifact_summary(artifact: dict[str, Any]) -> dict[str, Any]:
+    return artifact.get('summary') if isinstance(artifact.get('summary'), dict) else {}
+
+
 def _build_regime_local_artifact(result: ExecutionCycleResult, artifact: dict[str, Any]) -> dict[str, Any]:
-    summary = artifact.get('summary') if isinstance(artifact.get('summary'), dict) else {}
+    summary = _artifact_summary(artifact)
     return {
         'artifact_type': 'regime_local_cycle',
         'recorded_at': artifact.get('recorded_at'),
@@ -413,7 +423,7 @@ def _build_regime_local_artifact(result: ExecutionCycleResult, artifact: dict[st
 
 
 def _build_anomaly_artifact(result: ExecutionCycleResult, artifact: dict[str, Any]) -> dict[str, Any] | None:
-    summary = artifact.get('summary') if isinstance(artifact.get('summary'), dict) else {}
+    summary = _artifact_summary(artifact)
     if bool(summary.get('strategy_stats_eligible', True)):
         return None
     local = result.local_position
