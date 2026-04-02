@@ -71,14 +71,22 @@ This captures the intended live-side trading decision and the first-pass theoret
 
 These fields are expected to be sparse during hold-only / dry-run cycles and become meaningful once cycles include actual fills / fees / pnl observations.
 
-### 5. Active strategy metadata
-Stored under summary/artifact metadata, including fields such as:
-- `active_strategy_version`
-- `active_strategy_source`
-- `active_strategy_label`
-- `active_strategy_config_path`
-- `active_strategy_promoted_at`
-- `active_strategy_promotion_note`
+### 5. Summary layer
+Stored under:
+- `result.summary`
+
+Current policy:
+- keep the summary layer leaner than before, but **do not prematurely strip potentially valuable report/stat fields**
+- retain statistics that may become first-class report/dashboard inputs even if the current report pipeline is not fully exploiting them yet
+- remove pure mirror layers at the artifact top level when they add no information
+
+Examples of currently valuable summary data to preserve:
+- active strategy identity / promotion metadata
+- verification counters
+- theoretical-vs-actual execution deviation fields
+- attribution provenance fields
+- ledger/position bookkeeping fields useful for execution diagnostics
+- strategy stats eligibility / anomaly reason fields
 
 ### 6. Upgrade handover metadata
 Where relevant, upgrade-time artifacts should surface:
@@ -94,10 +102,13 @@ Where relevant, upgrade-time artifacts should surface:
 - execution summary / verification fields
 - active strategy metadata tagging
 - upgrade request/result/handover marker artifact family
+- slimmer top-level artifact structure for `latest-execution-cycle.json`
 
-### Old hybrid-repo leftovers to remove over time
-- compare/debug semantics that only existed for the former router-composite path
+### Remove over time
+- broken compare/debug semantics that only existed for the former router-composite path
+- dead modules that reference no-longer-existent structures
 - field names or payload shapes tied to now-removed multi-account assumptions
+- pure mirror layers that add no analytical or operational value
 
 ## Operator usage
 
@@ -105,6 +116,7 @@ Use execution-cycle artifacts when:
 - diagnosing the latest live execution path
 - checking verification / reconcile details
 - inspecting which active strategy version was running
+- preserving raw material for future reporting/dashboard iterations
 
 Use upgrade request/result artifacts when:
 - validating a promotion-triggered strategy upgrade

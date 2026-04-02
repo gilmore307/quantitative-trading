@@ -1,16 +1,17 @@
 # TODO
 
 ## Current focus
-- make the dummy strategy E2E path actually runnable in `quantitative-trading`
+- keep the dummy strategy E2E path runnable in `quantitative-trading`
 - converge runtime artifacts on a single active-strategy / single-account live path
 - enforce the architecture rule that **only the model/version promoted from the historical backtest side is traded live**
 - remove stale parallel / compare / router-composite compatibility layers only where the dummy path proves they are not needed
+- preserve potentially valuable runtime statistics until report / dashboard requirements are settled
 
 ## Immediate next actions
-1. simplify `src/execution_cycle.py` so its active-strategy artifact path does not depend on legacy compare/router-composite summary fields
-2. review the remaining runtime / review path now that dummy E2E artifacts are available end-to-end
-3. validate `theoretical_snapshot` / execution-drag fields on additional enter/exit cycles, not just a minimal bounded smoke run
-4. continue deleting stale review/compare/shadow-plan compatibility code and family-account config residue from `src/`
+1. simplify `src/execution_cycle.py` structurally without prematurely deleting potentially useful report/stat fields
+2. enhance `src/review/report.py` and export output to consume the retained runtime statistics more explicitly
+3. review the remaining runtime / review path now that dummy E2E artifacts are available end-to-end
+4. continue deleting stale compatibility code and path residue that is clearly broken or unused
 5. keep `src/` as the only authoritative code tree; do not reintroduce a parallel migration code tree
 
 ## Verified now
@@ -29,10 +30,26 @@
   - `logs/runtime/latest-strategy-upgrade-result.json`
   - `logs/runtime/latest-strategy-handover-marker.json`
 - out-of-band upgrade consumer runs successfully and also emits a review artifact bundle under `reports/trade-review/`
+- stale dead-code remnants removed and kept removed:
+  - `src/review/compare.py`
+  - `src/runtime/regime_runner_legacy_runner_import.py`
+- ops readers now align with current repo + artifact structure:
+  - `src/ops/trade_alert_watcher.py`
+  - `src/ops/discord_notifier.py`
+- top-level `latest-execution-cycle.json` structure is slimmer, while potentially valuable runtime summary statistics have been restored for future reporting use
+
+## Current artifact policy
+- keep potentially valuable runtime statistics in `result.summary` until report/dashboard requirements are stable
+- remove only:
+  - clearly broken old-architecture leftovers
+  - dead modules with no references
+  - pure mirror layers that add no information
+- do not prematurely optimize artifact thinness at the cost of losing future reporting signal
 
 ## Known blockers
-- `src/execution_cycle.py` still carries legacy compare / shadow-plan / router-composite oriented logic
-- docs and code still contain some historical naming / migration residue that should now be pruned based on the proven dummy E2E path
+- `src/execution_cycle.py` still carries structural complexity and can be simplified further
+- docs and code still contain some historical naming / migration residue that should continue to be pruned
+- report/export layers do not yet fully exploit the retained runtime statistics
 
 ## Notes
 - docs-first migration rule still stands: keep project docs updated as the code path is clarified
