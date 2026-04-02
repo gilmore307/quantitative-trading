@@ -75,7 +75,7 @@ This keeps the live-runtime repo reversible and avoids mutating the host Python 
 
 ## Main code / script touchpoints
 
-- `src/runners/trade_daemon.py`
+- `src/runtime/trade_daemon.py`
 - `src/upgrade/strategy_pointer.py`
 - `src/execution/pipeline.py`
 - `src/upgrade/process_strategy_upgrade_request.py`

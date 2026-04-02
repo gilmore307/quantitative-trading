@@ -168,9 +168,9 @@ The main review architecture is:
 
 ### Review runners / scripts
 - `src/runtime/workflows.py`
-- `src/runners/weekly_review.py`
-- `src/runners/monthly_review.py`
-- `src/runners/quarterly_review.py`
+- `dashboard-side consumer (future)`
+- `dashboard-side consumer (future)`
+- `dashboard-side consumer (future)`
 - `scripts/review/weekly_review.py`
 - `scripts/review/monthly_review.py`
 - `scripts/review/quarterly_review.py`

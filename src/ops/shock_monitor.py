@@ -13,7 +13,7 @@ from src.market.ingestion import BtcPollingIngestor
 from src.market.okx_ws import OkxPublicWsClient
 
 
-OUT_DIR = Path('/root/.openclaw/workspace/projects/crypto-trading/logs/runtime')
+OUT_DIR = Path('/root/.openclaw/workspace/projects/quantitative-trading/logs/runtime')
 OUT_DIR.mkdir(parents=True, exist_ok=True)
 SHOCK_PATH = OUT_DIR / 'latest-shock.json'
 

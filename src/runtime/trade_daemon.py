@@ -106,7 +106,7 @@ def _maybe_emit_upgrade_request(*, active_strategy, cycle_started_at: datetime, 
 
 
 def build_arg_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description='Run continuous trade daemon for crypto-trading demo execution.')
+    parser = argparse.ArgumentParser(description='Run continuous trade daemon for quantitative-trading demo execution.')
     parser.add_argument('--interval-seconds', type=float, default=60.0, help='Seconds between execution cycles.')
     parser.add_argument('--max-cycles', type=int, default=0, help='Optional max cycles for bounded runs. 0 means run forever.')
     parser.add_argument('--dummy-live-cycle', action='store_true', help='Run deterministic dummy enter/exit cycles based on promoted strategy version metadata.')

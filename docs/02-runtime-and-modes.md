@@ -73,7 +73,7 @@ If an upgrade happens while a position is open:
 ## Main code / script touchpoints
 
 ### Long-running runtime state
-- `src/runners/trade_daemon.py`
+- `src/runtime/trade_daemon.py`
 - `src/runtime/mode.py`
 - `src/runtime/mode_policy.py`
 - `src/runtime/workflow.py`
@@ -81,7 +81,7 @@ If an upgrade happens while a position is open:
 
 ### Active strategy hot-swap / pointer
 - `src/upgrade/strategy_pointer.py`
-- `src/runners/promote_strategy.py`
+- `src/upgrade/promote_strategy.py`
 - `src/upgrade/process_strategy_upgrade_request.py`
 - `src/runtime/workflows.py`
 

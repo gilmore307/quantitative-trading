@@ -84,7 +84,7 @@ def format_trade_message(summary: dict[str, Any], artifact: dict[str, Any]) -> s
 
 def format_error_message(event: dict[str, Any]) -> str:
     return (
-        'crypto-trading 运行异常\n\n'
+        'quantitative-trading 运行异常\n\n'
         f"- event: {event.get('event')}\n"
         f"- observed_at: {event.get('observed_at')}\n"
         f"- error: {event.get('error')}"

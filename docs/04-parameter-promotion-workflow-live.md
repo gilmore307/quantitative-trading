@@ -65,10 +65,10 @@ The live side should be able to record:
 
 ### Active strategy publication / pointer handling
 - `src/upgrade/strategy_pointer.py`
-- `src/runners/promote_strategy.py`
+- `src/upgrade/promote_strategy.py`
 
 ### Upgrade detection / request
-- `src/runners/trade_daemon.py`
+- `src/runtime/trade_daemon.py`
 - `src/upgrade/process_strategy_upgrade_request.py`
 
 ### Unified upgrade event

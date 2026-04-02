@@ -31,7 +31,7 @@ Keep live runtime execution operationally independent from historical research w
 ## Runtime path responsibilities
 
 Entry:
-- `src/runners/trade_daemon.py`
+- `src/runtime/trade_daemon.py`
 
 Responsibilities:
 - fetch current market/exchange state
@@ -74,7 +74,7 @@ Runtime should not need research processes to stay alive.
 ## Main code / script touchpoints
 
 ### Live runtime line
-- `src/runners/trade_daemon.py`
+- `src/runtime/trade_daemon.py`
 - `src/execution/pipeline.py`
 - `src/upgrade/strategy_pointer.py`
 - `src/state/`
@@ -88,6 +88,6 @@ Runtime should not need research processes to stay alive.
 ### Live-side review outputs
 - `src/review/`
 - `src/runtime/workflows.py`
-- `src/runners/weekly_review.py`
-- `src/runners/monthly_review.py`
-- `src/runners/quarterly_review.py`
+- `dashboard-side consumer (future)`
+- `dashboard-side consumer (future)`
+- `dashboard-side consumer (future)`

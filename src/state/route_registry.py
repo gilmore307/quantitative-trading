@@ -5,7 +5,7 @@ from dataclasses import asdict, dataclass, field
 from datetime import UTC, datetime
 from pathlib import Path
 
-ROUTE_STATE_PATH = Path('/root/.openclaw/workspace/projects/crypto-trading/logs/runtime/route-registry.json')
+ROUTE_STATE_PATH = Path('/root/.openclaw/workspace/projects/quantitative-trading/logs/runtime/route-registry.json')
 
 
 @dataclass(slots=True)

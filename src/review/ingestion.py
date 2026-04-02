@@ -102,11 +102,7 @@ def canonicalize_history_row(row: dict[str, Any]) -> dict[str, dict[str, float]]
             target = metrics.setdefault(ACTIVE_LIVE_ALIAS, {})
             _merge_metric_fields(target, raw, overwrite=True)
 
-    primary_summary = None
-    if isinstance(row.get('summary'), dict) and isinstance(row['summary'].get('primary_summary'), dict):
-        primary_summary = row['summary']['primary_summary']
-    elif isinstance(row.get('result'), dict) and isinstance(row['result'].get('summary'), dict):
-        primary_summary = row['result']['summary']
+    primary_summary = row['result']['summary'] if isinstance(row.get('result'), dict) and isinstance(row['result'].get('summary'), dict) else None
     if isinstance(primary_summary, dict):
         target = metrics.setdefault(ACTIVE_LIVE_ALIAS, {})
         _merge_metric_fields(target, primary_summary, overwrite=False)
