@@ -10,8 +10,8 @@ from typing import Any
 
 import requests
 
-RUNTIME_DIR = Path('/root/.openclaw/workspace/projects/crypto-trading/logs/runtime')
-DAEMON_LOG = RUNTIME_DIR / 'trade-daemon.jsonl'
+RUNTIME_DIR = Path('/root/.openclaw/workspace/projects/quantitative-trading/logs/runtime')
+DAEMON_LOG_DIR = RUNTIME_DIR / 'trade-daemon'
 LATEST_ARTIFACT = RUNTIME_DIR / 'latest-execution-cycle.json'
 STATE_PATH = RUNTIME_DIR / 'trade-alert-watcher-state.json'
 
@@ -54,14 +54,12 @@ def send_discord_message(token: str, channel_id: str, content: str) -> None:
 
 
 def format_trade_message(summary: dict[str, Any], artifact: dict[str, Any]) -> str:
-    receipt = artifact.get('receipt') or {}
-    plan = artifact.get('plan') or {}
-    ledger = artifact.get('ledger_snapshot') or {}
-    open_legs = ledger.get('open_legs') or []
-    pending_exit = ledger.get('pending_exit') or {}
-    allocations = pending_exit.get('allocations') or []
+    primary = artifact.get('result') if isinstance(artifact.get('result'), dict) else {}
+    receipt = primary.get('receipt') if isinstance(primary, dict) and isinstance(primary.get('receipt'), dict) else {}
+    plan = primary.get('plan') if isinstance(primary, dict) and isinstance(primary.get('plan'), dict) else {}
+    ledger = primary.get('ledger_snapshot') if isinstance(primary, dict) and isinstance(primary.get('ledger_snapshot'), dict) else {}
     return (
-        'crypto-trading 交易执行\n\n'
+        'quantitative-trading 交易执行\n\n'
         f"- action: {summary.get('plan_action')}\n"
         f"- account: {summary.get('plan_account')}\n"
         f"- symbol: {summary.get('symbol')}\n"
@@ -71,15 +69,15 @@ def format_trade_message(summary: dict[str, Any], artifact: dict[str, Any]) -> s
         f"- receipt_mode: {summary.get('receipt_mode')}\n"
         f"- execution_id: {summary.get('execution_id')}\n"
         f"- client_order_id: {summary.get('client_order_id')}\n"
-        f"- order_id: {(receipt or {}).get('order_id')}\n"
+        f"- order_id: {summary.get('order_id')}\n"
         f"- trade_ids: {summary.get('trade_ids')}\n"
         f"- open_leg_count: {summary.get('open_leg_count')}\n"
         f"- pending_exit_leg_count: {summary.get('pending_exit_leg_count')}\n"
         f"- ledger_open_size: {summary.get('ledger_open_size')}\n"
         f"- position_size: {summary.get('position_size')}\n"
         f"- position_ledger_diff: {summary.get('position_ledger_diff')}\n"
-        f"- latest_open_leg: {None if not open_legs else open_legs[-1].get('leg_id')}\n"
-        f"- exit_allocations: {[{'leg_id': a.get('leg_id'), 'requested_size': a.get('requested_size'), 'closed_size': a.get('closed_size')} for a in allocations]}\n"
+        f"- open_leg_ids: {ledger.get('open_leg_ids')}\n"
+        f"- pending_exit_leg_ids: {ledger.get('pending_exit_leg_ids')}\n"
         f"- reason: {summary.get('plan_reason')}"
     )
 
@@ -139,7 +137,7 @@ def build_arg_parser() -> argparse.ArgumentParser:
 
 def main() -> None:
     args = build_arg_parser().parse_args()
-    env = load_env(Path('/root/.openclaw/workspace/projects/crypto-trading/.env'))
+    env = load_env(Path('/root/.openclaw/workspace/projects/quantitative-trading/.env'))
     discord_target = env.get('OPENCLAW_DISCORD_CHANNEL', '')
     channel_id = discord_target.removeprefix('channel:') if discord_target.startswith('channel:') else discord_target
     token = os.getenv('DISCORD_BOT_TOKEN') or env.get('DISCORD_BOT_TOKEN') or os.getenv('CHANNELS_DISCORD_TOKEN')
@@ -152,8 +150,10 @@ def main() -> None:
     last_warn_fingerprint = state.get('last_warn_fingerprint')
 
     while True:
-        if DAEMON_LOG.exists():
-            content = DAEMON_LOG.read_text(encoding='utf-8')
+        daemon_files = sorted(DAEMON_LOG_DIR.glob('*.jsonl')) if DAEMON_LOG_DIR.exists() else []
+        daemon_log = daemon_files[-1] if daemon_files else None
+        if daemon_log is not None and daemon_log.exists():
+            content = daemon_log.read_text(encoding='utf-8')
             if len(content) > last_daemon_size:
                 delta = content[last_daemon_size:]
                 last_daemon_size = len(content)
@@ -164,6 +164,8 @@ def main() -> None:
                     event = json.loads(line)
                     if event.get('event') == 'cycle_error':
                         send_discord_message(token, channel_id, format_error_message(event))
+        else:
+            last_daemon_size = 0
 
         artifact = read_json(LATEST_ARTIFACT)
         summary = artifact.get('summary') if isinstance(artifact, dict) else {}
