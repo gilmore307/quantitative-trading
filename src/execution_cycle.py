@@ -310,7 +310,6 @@ def build_execution_artifact(result: ExecutionCycleResult) -> dict[str, Any]:
         'policy_action': None if result.reconcile_result is None else result.reconcile_result.policy.action,
         'policy_reason': None if result.reconcile_result is None else result.reconcile_result.policy.reason,
         'account_metrics': build_account_metrics_from_cycle(receipt=result.receipt, reconcile_result=result.reconcile_result, balance_summary=balance_summary, local_position=result.local_position),
-        'attribution_trade_count': payload['attribution_snapshot'].get('trade_count'),
         'attribution_fee_source': payload['attribution_snapshot'].get('fee_source'),
         'attribution_realized_pnl_source': payload['attribution_snapshot'].get('realized_pnl_source'),
         'attribution_equity_source': payload['attribution_snapshot'].get('equity_source'),
