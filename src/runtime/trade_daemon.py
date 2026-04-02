@@ -26,6 +26,7 @@ DAEMON_LOG = lambda: dated_jsonl_path('trade-daemon')
 PID_PATH = OUT_DIR / 'trade-daemon.pid'
 LOCK_PATH = OUT_DIR / 'trade-daemon.lock'
 UPGRADE_REQUEST_PATH = OUT_DIR / 'latest-strategy-upgrade-request.json'
+UPGRADE_STATE_PATH = OUT_DIR / 'strategy-upgrade-state.json'
 
 
 def _json_default(value: Any):
@@ -41,6 +42,67 @@ def _log_event(event: dict[str, Any]) -> None:
 
 def _store_upgrade_request(event: dict[str, Any]) -> None:
     UPGRADE_REQUEST_PATH.write_text(json.dumps(event, default=_json_default, ensure_ascii=False, indent=2), encoding='utf-8')
+
+
+def _load_upgrade_state() -> dict[str, Any]:
+    if not UPGRADE_STATE_PATH.exists():
+        return {}
+    try:
+        payload = json.loads(UPGRADE_STATE_PATH.read_text(encoding='utf-8'))
+    except Exception:
+        return {}
+    return payload if isinstance(payload, dict) else {}
+
+
+def _store_upgrade_state(payload: dict[str, Any]) -> None:
+    UPGRADE_STATE_PATH.write_text(json.dumps(payload, default=_json_default, ensure_ascii=False, indent=2), encoding='utf-8')
+
+
+def _maybe_emit_upgrade_request(*, active_strategy, cycle_started_at: datetime, state: dict[str, Any]) -> dict[str, Any]:
+    current_version = str(active_strategy.version)
+    previous_version = str(state.get('last_seen_strategy_version') or '')
+    pending_request_version = str(state.get('pending_request_version') or '')
+    last_request_version = str(state.get('last_request_version') or '')
+
+    if not previous_version:
+        state['last_seen_strategy_version'] = current_version
+        state['last_seen_at'] = cycle_started_at
+        return state
+
+    version_changed = current_version != previous_version
+    request_needed = version_changed and current_version not in {pending_request_version, last_request_version}
+
+    if request_needed:
+        _log_event({
+            'event': 'strategy_hot_swap_detected',
+            'observed_at': cycle_started_at,
+            'previous_version': previous_version,
+            'active_strategy_version': current_version,
+            'active_strategy_source': active_strategy.source,
+            'active_strategy_label': active_strategy.metadata.get('family'),
+            'active_strategy_config_path': active_strategy.metadata.get('config_path'),
+            'active_strategy_promoted_at': active_strategy.metadata.get('promoted_at'),
+            'promotion_note': active_strategy.metadata.get('promotion_note'),
+        })
+        request_event = {
+            'event': 'strategy_upgrade_event_requested',
+            'observed_at': cycle_started_at,
+            'previous_version': previous_version,
+            'active_strategy_version': current_version,
+            'active_strategy_source': active_strategy.source,
+            'request_reason': 'detected_active_strategy_version_change',
+            'execution_policy': 'deferred_out_of_band',
+            'position_handover_policy': 'strategy_switch_handling',
+        }
+        _log_event(request_event)
+        _store_upgrade_request(request_event)
+        state['pending_request_version'] = current_version
+        state['last_request_version'] = current_version
+        state['last_request_at'] = cycle_started_at
+
+    state['last_seen_strategy_version'] = current_version
+    state['last_seen_at'] = cycle_started_at
+    return state
 
 
 def build_arg_parser() -> argparse.ArgumentParser:
@@ -87,7 +149,7 @@ def main() -> None:
     notifier = DiscordNotifier(settings)
     adapter = DryRunExecutionAdapter() if settings.dry_run else OkxExecutionAdapter(settings)
     pipeline = ExecutionPipeline(settings=settings, runtime_store=runtime_store, adapter=adapter)
-    previous_strategy_version = None
+    upgrade_state = _load_upgrade_state()
 
     PID_PATH.write_text(str(Path('/proc/self').resolve().name), encoding='utf-8')
     _log_event({
@@ -110,33 +172,8 @@ def main() -> None:
         cycle_started_at = datetime.now(UTC)
         try:
             active_strategy = load_active_strategy_snapshot()
-            if previous_strategy_version is None:
-                previous_strategy_version = active_strategy.version
-            elif active_strategy.version != previous_strategy_version:
-                _log_event({
-                    'event': 'strategy_hot_swap_detected',
-                    'observed_at': cycle_started_at,
-                    'previous_version': previous_strategy_version,
-                    'active_strategy_version': active_strategy.version,
-                    'active_strategy_source': active_strategy.source,
-                    'active_strategy_label': active_strategy.metadata.get('family'),
-                    'active_strategy_config_path': active_strategy.metadata.get('config_path'),
-                    'active_strategy_promoted_at': active_strategy.metadata.get('promoted_at'),
-                    'promotion_note': active_strategy.metadata.get('promotion_note'),
-                })
-                request_event = {
-                    'event': 'strategy_upgrade_event_requested',
-                    'observed_at': cycle_started_at,
-                    'previous_version': previous_strategy_version,
-                    'active_strategy_version': active_strategy.version,
-                    'active_strategy_source': active_strategy.source,
-                    'request_reason': 'detected_active_strategy_version_change',
-                    'execution_policy': 'deferred_out_of_band',
-                    'position_handover_policy': 'strategy_switch_handling',
-                }
-                _log_event(request_event)
-                _store_upgrade_request(request_event)
-                previous_strategy_version = active_strategy.version
+            upgrade_state = _maybe_emit_upgrade_request(active_strategy=active_strategy, cycle_started_at=cycle_started_at, state=upgrade_state)
+            _store_upgrade_state(upgrade_state)
             result = run_dummy_cycle(runtime_store=runtime_store, active=active_strategy) if args.dummy_live_cycle else pipeline.run_cycle_active_strategy()
             artifact = persist_active_strategy_execution_artifact(result)
             summary = artifact.get('summary', {}) if isinstance(artifact, dict) else {}
