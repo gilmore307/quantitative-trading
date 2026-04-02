@@ -70,13 +70,12 @@ class DiscordNotifier:
         action = summary.get('plan_action')
         if action not in {'enter', 'exit'} or not receipt_accepted:
             return False
-        receipt = artifact.get('receipt') or {}
         fingerprint = '|'.join([
             'trade',
             str(action),
             str(summary.get('plan_account')),
             str(summary.get('symbol')),
-            str(receipt.get('order_id')),
+            str(summary.get('order_id')),
             str(summary.get('receipt_mode')),
         ])
         if fingerprint == self._state.get('last_trade_fingerprint'):
@@ -129,32 +128,29 @@ def should_notify_warning(summary: dict[str, Any], notify_runtime_warnings: bool
 
 
 def format_trade_message(summary: dict[str, Any], artifact: dict[str, Any]) -> str:
-    receipt = artifact.get('receipt') or {}
-    plan = artifact.get('plan') or {}
-    ledger = artifact.get('ledger_snapshot') or {}
-    open_legs = ledger.get('open_legs') or []
-    pending_exit = ledger.get('pending_exit') or {}
-    allocations = pending_exit.get('allocations') or []
+    receipt = artifact.get('receipt') if isinstance(artifact.get('receipt'), dict) else {}
+    plan = artifact.get('plan') if isinstance(artifact.get('plan'), dict) else {}
+    ledger = artifact.get('ledger_snapshot') if isinstance(artifact.get('ledger_snapshot'), dict) else {}
     return (
-        'crypto-trading 交易执行\n\n'
+        'quantitative-trading 交易执行\n\n'
         f"- action: {summary.get('plan_action')}\n"
         f"- account: {summary.get('plan_account')}\n"
         f"- symbol: {summary.get('symbol')}\n"
         f"- regime: {summary.get('regime')}\n"
-        f"- side: {receipt.get('side') or plan.get('side')}\n"
-        f"- size: {receipt.get('size') or plan.get('size')}\n"
+        f"- side: {receipt.get('side') or plan.get('side') or summary.get('theoretical_side')}\n"
+        f"- size: {receipt.get('size') or plan.get('size') or summary.get('theoretical_size')}\n"
         f"- receipt_mode: {summary.get('receipt_mode')}\n"
         f"- execution_id: {summary.get('execution_id')}\n"
         f"- client_order_id: {summary.get('client_order_id')}\n"
-        f"- order_id: {(receipt or {}).get('order_id')}\n"
+        f"- order_id: {summary.get('order_id')}\n"
         f"- trade_ids: {summary.get('trade_ids')}\n"
         f"- open_leg_count: {summary.get('open_leg_count')}\n"
         f"- pending_exit_leg_count: {summary.get('pending_exit_leg_count')}\n"
         f"- ledger_open_size: {summary.get('ledger_open_size')}\n"
         f"- position_size: {summary.get('position_size')}\n"
         f"- position_ledger_diff: {summary.get('position_ledger_diff')}\n"
-        f"- latest_open_leg: {None if not open_legs else open_legs[-1].get('leg_id')}\n"
-        f"- exit_allocations: {[{'leg_id': a.get('leg_id'), 'requested_size': a.get('requested_size'), 'closed_size': a.get('closed_size')} for a in allocations]}\n"
+        f"- open_leg_ids: {ledger.get('open_leg_ids')}\n"
+        f"- pending_exit_leg_ids: {ledger.get('pending_exit_leg_ids')}\n"
         f"- reason: {summary.get('plan_reason')}"
     )
 

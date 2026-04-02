@@ -176,18 +176,16 @@ def main() -> None:
             _store_upgrade_state(upgrade_state)
             result = run_dummy_cycle(runtime_store=runtime_store, active=active_strategy) if args.dummy_live_cycle else pipeline.run_cycle_active_strategy()
             artifact = persist_active_strategy_execution_artifact(result)
-            summary = artifact.get('summary', {}) if isinstance(artifact, dict) else {}
             primary = artifact.get('result', {}) if isinstance(artifact, dict) else {}
             primary_summary = primary.get('summary', {}) if isinstance(primary, dict) else {}
             cycle_event = {
                 'event': 'cycle_ok',
                 'observed_at': cycle_started_at,
-                'runtime_mode': summary.get('runtime_mode'),
-                'active_strategy_version': summary.get('active_strategy_version'),
-                'active_strategy_label': summary.get('active_strategy_label'),
-                'active_strategy_name': summary.get('active_strategy_name'),
-                'symbol': summary.get('symbol'),
-                'regime': summary.get('regime'),
+                'runtime_mode': primary_summary.get('runtime_mode'),
+                'active_strategy_version': primary_summary.get('active_strategy_version'),
+                'active_strategy_label': primary_summary.get('active_strategy_label'),
+                'symbol': primary_summary.get('symbol'),
+                'regime': primary_summary.get('regime'),
                 'plan_action': primary_summary.get('plan_action'),
                 'plan_account': primary_summary.get('plan_account'),
                 'trade_enabled': primary_summary.get('trade_enabled'),

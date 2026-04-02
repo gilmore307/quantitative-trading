@@ -420,27 +420,10 @@ def build_active_strategy_execution_artifact(result: ActiveStrategyExecutionResu
     payload = {
         'artifact_type': 'active_strategy_execution_cycle',
         'recorded_at': datetime.now(UTC).isoformat(),
-        'symbol': result.regime_output.symbol,
         'runtime_state': _sanitize_for_artifact(result.runtime_state),
         'active_strategy': _sanitize_for_artifact(result.active_strategy),
-        'active_strategy_name': result.strategy_name,
-        'shared_regime': {
-            'final_regime': result.regime_output.final_decision.get('primary'),
-            'confidence': result.regime_output.final_decision.get('confidence'),
-            'decision_summary': _sanitize_for_artifact(result.regime_output.decision_summary),
-        },
         'result': primary,
         'live_positions': _sanitize_for_artifact(result.live_positions),
-        'summary': {
-            'runtime_mode': result.runtime_state.get('mode'),
-            'active_strategy_version': (result.active_strategy or {}).get('version'),
-            'active_strategy_label': ((result.active_strategy or {}).get('metadata') or {}).get('family'),
-            'active_strategy_config_path': ((result.active_strategy or {}).get('metadata') or {}).get('config_path'),
-            'active_strategy_name': result.strategy_name,
-            'symbol': result.regime_output.symbol,
-            'regime': result.regime_output.final_decision.get('primary'),
-            'primary_summary': primary.get('summary'),
-        },
     }
     return payload
 
@@ -449,7 +432,6 @@ def persist_active_strategy_execution_artifact(result: ActiveStrategyExecutionRe
     primary = persist_execution_artifact(result.result)
     artifact = build_active_strategy_execution_artifact(result)
     artifact['result'] = primary
-    artifact['summary']['primary_summary'] = primary.get('summary')
     LATEST_PATH.write_text(json.dumps(artifact, indent=2, default=_json_default, ensure_ascii=False))
     _append_jsonl(HISTORY_PATH, artifact)
     return artifact
