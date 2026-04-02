@@ -219,62 +219,12 @@ def _build_ledger_snapshot(result: ExecutionCycleResult) -> dict[str, Any] | Non
     if local is None:
         return None
     return {
-        'open_legs': [
-            {
-                'leg_id': leg.leg_id,
-                'execution_id': leg.execution_id,
-                'client_order_id': leg.client_order_id,
-                'order_id': leg.order_id,
-                'trade_ids': leg.trade_ids,
-                'side': leg.side,
-                'requested_size': leg.requested_size,
-                'filled_size': leg.filled_size,
-                'remaining_size': leg.remaining_size,
-                'status': leg.status,
-                'reason': leg.reason,
-            }
-            for leg in local.open_legs
-        ],
-        'closed_legs': [
-            {
-                'leg_id': leg.leg_id,
-                'execution_id': leg.execution_id,
-                'client_order_id': leg.client_order_id,
-                'order_id': leg.order_id,
-                'trade_ids': leg.trade_ids,
-                'side': leg.side,
-                'requested_size': leg.requested_size,
-                'filled_size': leg.filled_size,
-                'remaining_size': leg.remaining_size,
-                'status': leg.status,
-                'close_execution_id': leg.close_execution_id,
-                'close_client_order_id': leg.close_client_order_id,
-                'close_order_id': leg.close_order_id,
-                'close_trade_ids': leg.close_trade_ids,
-            }
-            for leg in local.closed_legs
-        ],
-        'pending_exit': None if local.pending_exit is None else {
-            'execution_id': local.pending_exit.execution_id,
-            'client_order_id': local.pending_exit.client_order_id,
-            'order_id': local.pending_exit.order_id,
-            'trade_ids': local.pending_exit.trade_ids,
-            'requested_size': local.pending_exit.requested_size,
-            'side': local.pending_exit.side,
-            'status': local.pending_exit.status,
-            'reason': local.pending_exit.reason,
-            'allocations': [
-                {
-                    'leg_id': alloc.leg_id,
-                    'requested_size': alloc.requested_size,
-                    'closed_size': alloc.closed_size,
-                    'trade_ids': alloc.trade_ids,
-                    'fee_usdt': alloc.fee_usdt,
-                    'realized_pnl_usdt': alloc.realized_pnl_usdt,
-                }
-                for alloc in local.pending_exit.allocations
-            ],
-        },
+        'open_leg_count': len(local.open_legs),
+        'closed_leg_count': len(local.closed_legs),
+        'pending_exit_leg_count': 0 if local.pending_exit is None else len(local.pending_exit.allocations),
+        'open_leg_ids': [leg.leg_id for leg in local.open_legs],
+        'closed_leg_ids': [leg.leg_id for leg in local.closed_legs],
+        'pending_exit_leg_ids': [] if local.pending_exit is None else [alloc.leg_id for alloc in local.pending_exit.allocations],
     }
 
 
@@ -297,17 +247,6 @@ def _build_attribution_snapshot(result: ExecutionCycleResult) -> dict[str, Any]:
             'closed_leg_ids': [leg.leg_id for leg in local.closed_legs],
             'pending_exit_leg_ids': [] if local.pending_exit is None else [alloc.leg_id for alloc in local.pending_exit.allocations],
         },
-        'pending_exit_allocations': [] if local is None or local.pending_exit is None else [
-            {
-                'leg_id': alloc.leg_id,
-                'requested_size': alloc.requested_size,
-                'closed_size': alloc.closed_size,
-                'trade_ids': alloc.trade_ids,
-                'fee_usdt': alloc.fee_usdt,
-                'realized_pnl_usdt': alloc.realized_pnl_usdt,
-            }
-            for alloc in local.pending_exit.allocations
-        ],
     }
 
 
