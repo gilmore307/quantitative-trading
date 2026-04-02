@@ -4,7 +4,7 @@ import os
 from pathlib import Path
 
 from dotenv import load_dotenv
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 
 
 DEFAULT_SYMBOLS = ["BTC-USDT-SWAP"]
@@ -30,6 +30,8 @@ class StrategyAccountConfig(BaseModel):
 
 
 class Settings(BaseModel):
+    model_config = ConfigDict(extra='allow')
+
     okx_api_key: str = Field(alias="OKX_API_KEY")
     okx_api_secret: str = Field(alias="OKX_API_SECRET")
     okx_api_passphrase: str = Field(alias="OKX_API_PASSPHRASE")
