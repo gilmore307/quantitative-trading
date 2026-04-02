@@ -15,7 +15,7 @@ The intent is to avoid treating execution logic itself as the place where model 
 ## Main entrypoints
 
 ### Trade daemon
-- `src/runners/trade_daemon.py`
+- `src/runtime/trade_daemon.py`
 
 ### Execution pipeline
 - `src/execution/pipeline.py`
@@ -53,10 +53,10 @@ Examples:
 
 ## Main code / script touchpoints
 
-- `src/runners/trade_daemon.py`
+- `src/runtime/trade_daemon.py`
 - `src/execution/pipeline.py`
 - `src/runtime/mode.py`
 - `src/runtime/mode_policy.py`
-- `src/runtime/strategy_pointer.py`
+- `src/upgrade/strategy_pointer.py`
 - `src/state/store.py`
 - `src/reconcile/`

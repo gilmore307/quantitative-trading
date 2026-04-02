@@ -90,9 +90,9 @@ A full upgrade-oriented review should be able to describe:
 
 ### Artifact production
 - `src/execution/pipeline.py`
-- `src/runners/execution_cycle.py`
-- `src/runtime/strategy_pointer.py`
-- `src/runners/process_strategy_upgrade_request.py`
+- `src/execution_cycle.py`
+- `src/upgrade/strategy_pointer.py`
+- `src/upgrade/process_strategy_upgrade_request.py`
 
 ### Review transformation / export
 - `src/review/ingestion.py`
@@ -102,6 +102,5 @@ A full upgrade-oriented review should be able to describe:
 - `src/review/export.py`
 
 ### Upgrade event orchestration
+- `src/upgrade/process_strategy_upgrade_request.py`
 - `src/runtime/workflows.py`
-- `src/runners/strategy_upgrade_event.py`
-- `src/runners/review_event.py`

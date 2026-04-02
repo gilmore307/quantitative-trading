@@ -21,13 +21,14 @@ Use these docs to derive the first wave of code/script migration into `quantitat
 
 ## Current implementation checkpoint
 
-The repo now has enough migrated `src/` code to attempt the dummy live-side E2E path, but it is not yet self-bootstrapable or cleanly converged:
+The repo is now runnable in isolation and the dummy live-side E2E path is materially proven:
 
-- there is still no Python dependency manifest in the repo, so direct smoke tests currently fail on missing packages such as `python-dotenv`
-- `src/execution_cycle.py` has been substantially cleaned up; remaining work is mostly final artifact/documentation sweep rather than old compare / shadow-plan / router-composite removal
-- `src/runtime/trade_daemon.py` still partially assumes the older execution summary shape
+- repo-local bootstrap exists: `pyproject.toml`, `requirements.txt`, `.venv`
+- execution/runtime smoke tests run successfully inside the repo
+- durable upgrade detection across daemon restarts now exists
+- stale dead-code remnants such as `src/review/compare.py` and `src/runtime/regime_runner_legacy_runner_import.py` have been removed
 
-So the immediate code migration priority is:
-1. make the repo runnable in isolation
-2. make the dummy execution artifact path work end to end
-3. then continue deleting stale compatibility layers
+So the immediate code migration priority is now:
+1. simplify `src/execution_cycle.py`
+2. keep pruning stale compatibility layers
+3. align docs with the settled `src/` runtime paths

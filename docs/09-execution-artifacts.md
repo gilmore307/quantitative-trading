@@ -24,9 +24,9 @@ Written under:
 ## Writer entrypoints
 
 Primary writer modules / entrypoints:
-- `src/runners/execution_cycle.py`
-- `src/runners/process_strategy_upgrade_request.py`
-- `src/runners/strategy_upgrade_event.py`
+- `src/execution_cycle.py`
+- `src/upgrade/process_strategy_upgrade_request.py`
+- `src/runtime/workflows.py`
 
 ## Primary artifact model
 
@@ -114,9 +114,9 @@ Use upgrade request/result artifacts when:
 ## Main code / script touchpoints
 
 - `src/execution/pipeline.py`
-- `src/runners/execution_cycle.py`
-- `src/runtime/strategy_pointer.py`
-- `src/runners/process_strategy_upgrade_request.py`
-- `src/runners/strategy_upgrade_event.py`
+- `src/execution_cycle.py`
+- `src/upgrade/strategy_pointer.py`
+- `src/upgrade/process_strategy_upgrade_request.py`
+- `src/runtime/workflows.py`
 - `src/state/store.py`
 - `src/state/live_position.py`

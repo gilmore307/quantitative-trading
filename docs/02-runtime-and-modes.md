@@ -80,10 +80,10 @@ If an upgrade happens while a position is open:
 - `src/runtime/workflows.py`
 
 ### Active strategy hot-swap / pointer
-- `src/runtime/strategy_pointer.py`
+- `src/upgrade/strategy_pointer.py`
 - `src/runners/promote_strategy.py`
-- `src/runners/process_strategy_upgrade_request.py`
-- `src/runners/strategy_upgrade_event.py`
+- `src/upgrade/process_strategy_upgrade_request.py`
+- `src/runtime/workflows.py`
 
 ### Runtime state / execution coupling
 - `src/execution/pipeline.py`

@@ -25,7 +25,7 @@ Artifacts and state are part of the traceable live review path, not just debuggi
 
 - `src/state/store.py`
 - `src/state/live_position.py`
-- `src/runtime/strategy_pointer.py`
-- `src/runners/process_strategy_upgrade_request.py`
-- `src/runners/execution_cycle.py`
+- `src/upgrade/strategy_pointer.py`
+- `src/upgrade/process_strategy_upgrade_request.py`
+- `src/execution_cycle.py`
 - `src/execution/pipeline.py`

@@ -64,19 +64,19 @@ The live side should be able to record:
 ## Main code / script touchpoints
 
 ### Active strategy publication / pointer handling
-- `src/runtime/strategy_pointer.py`
+- `src/upgrade/strategy_pointer.py`
 - `src/runners/promote_strategy.py`
 
 ### Upgrade detection / request
 - `src/runners/trade_daemon.py`
-- `src/runners/process_strategy_upgrade_request.py`
+- `src/upgrade/process_strategy_upgrade_request.py`
 
 ### Unified upgrade event
 - `src/runtime/workflows.py`
-- `src/runners/strategy_upgrade_event.py`
-- `src/runners/review_event.py`
+- `src/runtime/workflows.py`
+- `src/runtime/workflows.py`
 
 
 ### Artifact tagging
 - `src/execution/pipeline.py`
-- `src/runners/execution_cycle.py`
+- `src/execution_cycle.py`

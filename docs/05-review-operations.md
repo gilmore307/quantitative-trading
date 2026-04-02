@@ -156,8 +156,7 @@ The main review architecture is:
 ## Main code / script touchpoints
 
 ### Upgrade-triggered review entrypoints
-- `src/runners/strategy_upgrade_event.py`
-- `src/runners/process_strategy_upgrade_request.py`
+- `src/upgrade/process_strategy_upgrade_request.py`
 - `src/runtime/workflows.py`
 
 ### Review pipeline
@@ -168,7 +167,7 @@ The main review architecture is:
 - `src/review/export.py`
 
 ### Review runners / scripts
-- `src/runners/review_event.py`
+- `src/runtime/workflows.py`
 - `src/runners/weekly_review.py`
 - `src/runners/monthly_review.py`
 - `src/runners/quarterly_review.py`
@@ -177,7 +176,7 @@ The main review architecture is:
 - `scripts/review/quarterly_review.py`
 
 ### Runtime artifacts consumed by review
-- `src/runners/execution_cycle.py`
+- `src/execution_cycle.py`
 - `src/execution/pipeline.py`
-- `src/runtime/strategy_pointer.py`
+- `src/upgrade/strategy_pointer.py`
 - `src/state/store.py`
