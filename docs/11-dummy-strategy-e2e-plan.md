@@ -45,6 +45,7 @@ Target modules:
 Expected artifacts:
 - `logs/runtime/latest-execution-cycle.json`
 - possibly `logs/runtime/execution-cycles/*.jsonl`
+- `logs/runtime/trade-daemon-*.jsonl`
 
 ## Step C — trigger an upgrade change
 Promote a second dummy version so the daemon detects an active version change.
@@ -146,13 +147,29 @@ A successful dummy strategy validation should prove:
 ## Current verified status
 
 Already verified in `quantitative-trading`:
-- dummy promotion writes active pointer
-- daemon detects live hot-swap from `dummy-v1` to `dummy-v2`
-- daemon emits `strategy_upgrade_event_requested`
-- daemon changes dummy execution cadence from 5 seconds to 3 seconds after promotion
-- out-of-band consumer writes:
-  - `logs/runtime/latest-strategy-upgrade-result.json`
-  - `logs/runtime/latest-strategy-handover-marker.json`
+- repo-local bootstrap files exist: `pyproject.toml`, `requirements.txt`, `.venv`
+- `logs/runtime/active-model-inputs.json` is now required in practice and a minimal seed bundle is sufficient to unblock repo-local runtime smoke tests
+- `Settings` now accepts runtime-attached extra fields, so `BtcRegimeRunner` can attach `model_inputs` without crashing
+- `.venv/bin/python -m src.execution_cycle` runs successfully again
+- bounded `.venv/bin/python -m src.runtime.trade_daemon --dummy-live-cycle --interval-seconds 1 --max-cycles N` runs successfully and writes:
+  - `logs/runtime/latest-execution-cycle.json`
+  - `logs/runtime/execution-cycles/*.jsonl`
+  - `logs/runtime/trade-daemon/*.jsonl`
+- dummy execution artifacts now contain non-placeholder fee/pnl driven theoretical snapshot fields during enter/exit cycles
+- dummy promotion writes active pointer for `dummy-v1` and `dummy-v2`
 
-Remaining mismatch still visible after this validation:
-- configuration/test helpers still contain legacy family/account naming in some places, but upgrade workflow internals no longer perform the old calibrate-style multi-account bucket/account reset path
+Still not yet verified / still mismatched:
+- upgrade request emission is currently only reliable when the version change happens while the same daemon process is still alive
+- if promotion happens between separate daemon runs, `latest-strategy-upgrade-request.json` is not emitted because `trade_daemon` only tracks `previous_strategy_version` in memory
+- therefore the full Step C → Step D chain is **not yet durably complete** across restarts
+
+## Immediate architecture implication
+
+Upgrade detection must move from ephemeral in-process state to a durable runtime artifact.
+
+Recommended fix:
+- persist a last-seen active strategy version marker under `logs/runtime/`
+- compare current pointer vs last-seen/last-processed marker on each daemon cycle
+- emit `latest-strategy-upgrade-request.json` whenever an unprocessed version change is discovered, even after daemon restart
+
+Only after that change should the dummy-v1 → dummy-v2 handover path be treated as fully verified.
