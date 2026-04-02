@@ -39,6 +39,7 @@
 - top-level `latest-execution-cycle.json` structure is slimmer, while potentially valuable runtime summary statistics have been restored for future reporting use
 
 ## Current artifact policy
+- authoritative runtime artifact/schema reference lives in `docs/12-runtime-data-contract.md`
 - keep potentially valuable runtime statistics in `result.summary` until report/dashboard requirements are stable
 - remove only:
   - clearly broken old-architecture leftovers

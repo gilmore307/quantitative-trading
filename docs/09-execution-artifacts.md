@@ -1,5 +1,8 @@
 # Execution Artifacts
 
+Authoritative schema reference:
+- `docs/12-runtime-data-contract.md`
+
 ## Purpose
 
 Execution artifacts are the persistence boundary between:

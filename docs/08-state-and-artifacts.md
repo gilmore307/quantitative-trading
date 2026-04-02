@@ -4,6 +4,9 @@ This document summarizes the main runtime state files and artifact families used
 
 ## Current principle
 
+Authoritative schema reference:
+- `docs/12-runtime-data-contract.md`
+
 This project should act as a durable **runtime data producer**.
 
 That means:

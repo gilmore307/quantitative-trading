@@ -146,6 +146,9 @@ A successful dummy strategy validation should prove:
 
 ## Current verified status
 
+For the current canonical runtime artifact shape, use:
+- `docs/12-runtime-data-contract.md`
+
 Verified in `quantitative-trading` now:
 - repo-local bootstrap files exist and are usable: `pyproject.toml`, `requirements.txt`, `.venv`
 - `logs/runtime/active-model-inputs.json` is required in practice and a minimal seed bundle is sufficient to unblock repo-local runtime smoke tests
