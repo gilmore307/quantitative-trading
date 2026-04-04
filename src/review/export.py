@@ -9,7 +9,7 @@ from src.review.report import build_report_scaffold
 from src.review.framework import ReviewWindow
 
 
-DEFAULT_REPORTS_DIR = Path('/root/.openclaw/workspace/projects/quantitative-trading/reports/trade-review')
+DEFAULT_REPORTS_DIR = Path('/root/.openclaw/workspace/projects/trading-execution/reports/trade-review')
 
 
 def _slug(label: str) -> str:

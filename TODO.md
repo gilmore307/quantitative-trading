@@ -1,7 +1,7 @@
 # TODO
 
 ## Current focus
-- keep the dummy strategy E2E path runnable in `quantitative-trading`
+- keep the dummy strategy E2E path runnable in `trading-execution`
 - converge runtime artifacts on a single active-strategy / single-account live path
 - enforce the architecture rule that **only the model/version promoted from the historical backtest side is traded live**
 - remove stale parallel / compare / router-composite compatibility layers only where the dummy path proves they are not needed

@@ -15,7 +15,7 @@ from src.runtime.model_inputs import load_model_inputs
 from src.upgrade.strategy_pointer import load_active_strategy_snapshot
 
 
-OUT_DIR = Path('/root/.openclaw/workspace/projects/quantitative-trading/logs/runtime')
+OUT_DIR = Path('/root/.openclaw/workspace/projects/trading-execution/logs/runtime')
 OUT_DIR.mkdir(parents=True, exist_ok=True)
 LATEST_PATH = OUT_DIR / 'latest-regime.json'
 

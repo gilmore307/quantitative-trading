@@ -1,9 +1,9 @@
 # src/
 
-This is the beginning of the final source layout for `quantitative-trading`.
+This is the beginning of the final source layout for `trading-execution`.
 
 Current status:
-- `src/` is the authoritative live codebase for `quantitative-trading`
+- `src/` is the authoritative live codebase for `trading-execution`
 - the old `flows/` migration workspace has been retired to avoid split-brain maintenance and confusion
 
 ## Current package skeleton

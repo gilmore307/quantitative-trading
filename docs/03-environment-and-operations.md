@@ -2,7 +2,7 @@
 
 ## Runtime role
 
-`quantitative-trading` is the live execution repository.
+`trading-execution` is the live execution repository.
 It consumes the currently promoted trading instructions / active runtime configuration produced by the historical side.
 
 It does **not** define strategy families in-place as the primary control surface.
@@ -43,8 +43,8 @@ Old strategy-family-specific env examples from the hybrid repo should be treated
 
 ### systemd-managed runtime
 ```bash
-systemctl status quantitative-trading.service --no-pager -n 40
-systemctl restart quantitative-trading.service
+systemctl status trading-execution.service --no-pager -n 40
+systemctl restart trading-execution.service
 ```
 
 ## Current operating model

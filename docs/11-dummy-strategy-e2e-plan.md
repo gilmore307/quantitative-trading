@@ -3,7 +3,7 @@
 This document defines the planned end-to-end validation path for a dummy strategy / dummy promoted live version.
 
 Purpose:
-- verify the current `quantitative-trading` target architecture with the smallest possible live-side flow
+- verify the current `trading-execution` target architecture with the smallest possible live-side flow
 - reveal which scripts/modules are still truly required
 - reveal which modules are only historical leftovers or stale compatibility shims
 
@@ -149,7 +149,7 @@ A successful dummy strategy validation should prove:
 For the current canonical runtime artifact shape, use:
 - `docs/12-runtime-data-contract.md`
 
-Verified in `quantitative-trading` now:
+Verified in `trading-execution` now:
 - repo-local bootstrap files exist and are usable: `pyproject.toml`, `requirements.txt`, `.venv`
 - `logs/runtime/active-model-inputs.json` is required in practice and a minimal seed bundle is sufficient to unblock repo-local runtime smoke tests
 - `Settings` now accepts runtime-attached extra fields, so `BtcRegimeRunner` can attach `model_inputs` without crashing

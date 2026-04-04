@@ -1,6 +1,6 @@
 # State and Artifacts
 
-This document summarizes the main runtime state files and artifact families used by `quantitative-trading`.
+This document summarizes the main runtime state files and artifact families used by `trading-execution`.
 
 ## Current principle
 

@@ -17,7 +17,7 @@ This docs tree was seeded from realtime/live-operation material previously livin
 
 ## Next step
 
-Use these docs to derive the first wave of code/script migration into `quantitative-trading`.
+Use these docs to derive the first wave of code/script migration into `trading-execution`.
 
 ## Current implementation checkpoint
 

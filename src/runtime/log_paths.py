@@ -5,7 +5,7 @@ from pathlib import Path
 
 from src.runtime.business_time import to_business
 
-RUNTIME_DIR = Path('/root/.openclaw/workspace/projects/quantitative-trading/logs/runtime')
+RUNTIME_DIR = Path('/root/.openclaw/workspace/projects/trading-execution/logs/runtime')
 RUNTIME_DIR.mkdir(parents=True, exist_ok=True)
 
 

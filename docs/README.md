@@ -1,4 +1,4 @@
-# quantitative-trading docs
+# trading-execution docs
 
 This docs tree is the canonical home for realtime trading / live execution / runtime operations documentation.
 

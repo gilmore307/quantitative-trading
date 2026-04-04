@@ -6,7 +6,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
-OUT_DIR = Path('/root/.openclaw/workspace/projects/quantitative-trading/logs/runtime')
+OUT_DIR = Path('/root/.openclaw/workspace/projects/trading-execution/logs/runtime')
 OUT_DIR.mkdir(parents=True, exist_ok=True)
 ACTIVE_STRATEGY_POINTER_PATH = OUT_DIR / 'active-strategy.json'
 

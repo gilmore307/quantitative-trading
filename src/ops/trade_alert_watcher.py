@@ -10,7 +10,7 @@ from typing import Any
 
 import requests
 
-RUNTIME_DIR = Path('/root/.openclaw/workspace/projects/quantitative-trading/logs/runtime')
+RUNTIME_DIR = Path('/root/.openclaw/workspace/projects/trading-execution/logs/runtime')
 DAEMON_LOG_DIR = RUNTIME_DIR / 'trade-daemon'
 LATEST_ARTIFACT = RUNTIME_DIR / 'latest-execution-cycle.json'
 STATE_PATH = RUNTIME_DIR / 'trade-alert-watcher-state.json'
@@ -59,7 +59,7 @@ def format_trade_message(summary: dict[str, Any], artifact: dict[str, Any]) -> s
     plan = primary.get('plan') if isinstance(primary, dict) and isinstance(primary.get('plan'), dict) else {}
     ledger = primary.get('ledger_snapshot') if isinstance(primary, dict) and isinstance(primary.get('ledger_snapshot'), dict) else {}
     return (
-        'quantitative-trading 交易执行\n\n'
+        'trading-execution 交易执行\n\n'
         f"- action: {summary.get('plan_action')}\n"
         f"- account: {summary.get('plan_account')}\n"
         f"- symbol: {summary.get('symbol')}\n"
@@ -84,7 +84,7 @@ def format_trade_message(summary: dict[str, Any], artifact: dict[str, Any]) -> s
 
 def format_error_message(event: dict[str, Any]) -> str:
     return (
-        'quantitative-trading 运行异常\n\n'
+        'trading-execution 运行异常\n\n'
         f"- event: {event.get('event')}\n"
         f"- observed_at: {event.get('observed_at')}\n"
         f"- error: {event.get('error')}"
@@ -137,7 +137,7 @@ def build_arg_parser() -> argparse.ArgumentParser:
 
 def main() -> None:
     args = build_arg_parser().parse_args()
-    env = load_env(Path('/root/.openclaw/workspace/projects/quantitative-trading/.env'))
+    env = load_env(Path('/root/.openclaw/workspace/projects/trading-execution/.env'))
     discord_target = env.get('OPENCLAW_DISCORD_CHANNEL', '')
     channel_id = discord_target.removeprefix('channel:') if discord_target.startswith('channel:') else discord_target
     token = os.getenv('DISCORD_BOT_TOKEN') or env.get('DISCORD_BOT_TOKEN') or os.getenv('CHANNELS_DISCORD_TOKEN')

@@ -127,7 +127,7 @@ class Settings(BaseModel):
 
     @classmethod
     def load(cls, env_path: str | Path | None = None) -> "Settings":
-        path = Path(env_path or Path('/root/.openclaw/workspace/projects/quantitative-trading/.env'))
+        path = Path(env_path or Path('/root/.openclaw/workspace/projects/trading-execution/.env'))
         load_dotenv(path, override=True)
 
         symbols_raw = os.getenv("SYMBOLS", "")

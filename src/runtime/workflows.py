@@ -14,7 +14,7 @@ from src.runtime.store import RuntimeStore
 from src.runtime.workflow import next_mode_after
 
 
-OUT_DIR = Path('/root/.openclaw/workspace/projects/quantitative-trading/logs/runtime')
+OUT_DIR = Path('/root/.openclaw/workspace/projects/trading-execution/logs/runtime')
 OUT_DIR.mkdir(parents=True, exist_ok=True)
 WORKFLOW_LOG = OUT_DIR / 'workflow-events.jsonl'
 TEST_REPORT_JSON = OUT_DIR / 'latest-test-summary.json'

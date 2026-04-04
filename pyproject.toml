@@ -1,5 +1,5 @@
 [project]
-name = "quantitative-trading"
+name = "trading-execution"
 version = "0.1.0"
 description = "Realtime trading, execution, runtime operations, and live monitoring codebase."
 requires-python = ">=3.12"

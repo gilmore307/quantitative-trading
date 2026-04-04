@@ -7,7 +7,7 @@ from typing import Any
 from src.upgrade.strategy_pointer import ActiveStrategySnapshot
 
 
-DEFAULT_MODEL_INPUTS_PATH = Path('/root/.openclaw/workspace/projects/quantitative-trading/logs/runtime/active-model-inputs.json')
+DEFAULT_MODEL_INPUTS_PATH = Path('/root/.openclaw/workspace/projects/trading-execution/logs/runtime/active-model-inputs.json')
 
 
 def load_model_inputs(active_strategy: ActiveStrategySnapshot | None = None, path: str | Path | None = None) -> dict[str, Any]:

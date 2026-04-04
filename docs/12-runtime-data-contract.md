@@ -1,6 +1,6 @@
 # 12 Runtime Data Contract
 
-This document records the current runtime artifact contract for `quantitative-trading`.
+This document records the current runtime artifact contract for `trading-execution`.
 
 Purpose:
 - provide one stable reference for future dashboard/report consumers
@@ -10,7 +10,7 @@ Purpose:
 
 ## Contract intent
 
-`quantitative-trading` should behave as a **runtime data producer**.
+`trading-execution` should behave as a **runtime data producer**.
 
 That means:
 - artifact files should be stable and explicit

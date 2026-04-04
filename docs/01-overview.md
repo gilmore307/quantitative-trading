@@ -1,12 +1,12 @@
 # 01 Overview
 
-This document is the top-level introduction to the `quantitative-trading` live runtime flow.
+This document is the top-level introduction to the `trading-execution` live runtime flow.
 
 The goal is to make the whole realtime system readable in one pass before diving into detailed docs.
 
 ## System role
 
-`quantitative-trading` is the live execution repository.
+`trading-execution` is the live execution repository.
 
 It is responsible for:
 - continuously running the trade daemon

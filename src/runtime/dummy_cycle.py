@@ -15,7 +15,7 @@ from src.execution.plan import ExecutionPlan
 from src.upgrade.strategy_pointer import ActiveStrategySnapshot
 
 
-STATE_PATH = Path('/root/.openclaw/workspace/projects/quantitative-trading/logs/runtime/dummy-cycle-state.json')
+STATE_PATH = Path('/root/.openclaw/workspace/projects/trading-execution/logs/runtime/dummy-cycle-state.json')
 DUMMY_ACCOUNT_ALIAS = 'active_live'
 DUMMY_SYMBOL = 'BTC-USDT-SWAP'
 

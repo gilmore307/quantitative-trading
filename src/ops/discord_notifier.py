@@ -8,7 +8,7 @@ import requests
 
 from src.config.settings import Settings
 
-STATE_PATH = Path('/root/.openclaw/workspace/projects/quantitative-trading/logs/runtime/direct-notify-state.json')
+STATE_PATH = Path('/root/.openclaw/workspace/projects/trading-execution/logs/runtime/direct-notify-state.json')
 
 
 class DiscordNotifier:
@@ -132,7 +132,7 @@ def format_trade_message(summary: dict[str, Any], artifact: dict[str, Any]) -> s
     plan = artifact.get('plan') if isinstance(artifact.get('plan'), dict) else {}
     ledger = artifact.get('ledger_snapshot') if isinstance(artifact.get('ledger_snapshot'), dict) else {}
     return (
-        'quantitative-trading 交易执行\n\n'
+        'trading-execution 交易执行\n\n'
         f"- action: {summary.get('plan_action')}\n"
         f"- account: {summary.get('plan_account')}\n"
         f"- symbol: {summary.get('symbol')}\n"
@@ -157,7 +157,7 @@ def format_trade_message(summary: dict[str, Any], artifact: dict[str, Any]) -> s
 
 def format_error_message(event: dict[str, Any]) -> str:
     return (
-        'quantitative-trading 运行异常\n\n'
+        'trading-execution 运行异常\n\n'
         f"- event: {event.get('event')}\n"
         f"- observed_at: {event.get('observed_at')}\n"
         f"- error: {event.get('error')}"
