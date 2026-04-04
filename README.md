@@ -9,6 +9,7 @@ This repository should retain:
 - strategy upgrade / promotion operational handling
 - realtime alerts / notifications
 - operational review of live trading behavior
+- machine-readable runtime/review artifacts consumed downstream by `trading-report`
 
 Historical data ingestion, research, model building, and backtests are being retained in:
 - `trading-model`

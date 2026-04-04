@@ -64,6 +64,12 @@ The new `trading-manager` repo will absorb part of the orchestration/storage-lif
 - docs and code still contain some historical naming / migration residue that should continue to be pruned
 - report/export layers do not yet fully exploit the retained runtime statistics
 
+## Reporting boundary
+
+- [ ] migrate canonical final report assembly out of `trading-execution` and into `trading-report`
+- [ ] keep `trading-execution` focused on machine-readable runtime/review producer outputs and artifact contracts
+- [ ] treat repo-local report/export code as migration material unless producer-side requirements force it to stay
+
 ## Scope rule
 
 `trading-execution` should own:
