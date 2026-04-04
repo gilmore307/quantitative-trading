@@ -1,5 +1,17 @@
 # TODO
 
+## Control-plane responsibility migration to `trading-manager`
+
+The new `trading-manager` repo will absorb part of the orchestration/storage-lifecycle responsibility that should not remain embedded inside `trading-execution`.
+
+### Migrate out of `trading-execution`
+- [ ] move scheduling/timing policy for non-resident execution-side workflows (reviews, maintenance passes, promotion helper runs, archive/cleanup passes) into `trading-manager`
+- [ ] move cross-repo decisions about when promotion-to-live should start into `trading-manager`; `trading-execution` should validate/apply promotion requests rather than acting as the cross-stack workflow brain
+- [ ] move storage lifecycle decisions for historical runtime/review artifacts into `trading-manager`
+- [ ] move cold-archive / rehydration orchestration for historical execution artifacts into `trading-manager`
+- [ ] keep resident live runtime protection requirements explicit so `trading-manager` schedules around them instead of competing with them
+- [ ] keep `trading-execution` focused on execution/runtime logic, runtime artifact contracts, promotion validation/application, and operational review entrypoints
+
 ## Current focus
 - keep the dummy strategy E2E path runnable in `trading-execution`
 - converge runtime artifacts on a single active-strategy / single-account live path
@@ -51,6 +63,22 @@
 - `src/execution_cycle.py` still carries structural complexity and can be simplified further
 - docs and code still contain some historical naming / migration residue that should continue to be pruned
 - report/export layers do not yet fully exploit the retained runtime statistics
+
+## Scope rule
+
+`trading-execution` should own:
+- live execution/runtime logic
+- promotion validation/application entrypoints
+- reconcile/alerts/reviews at the execution layer
+- runtime artifact contracts
+- resident workload behavior and resource-protection requirements that the manager must respect
+
+`trading-execution` should not own:
+- cross-repo workflow sequencing
+- global scheduling brain for when non-resident tasks run
+- archive/rehydration control-plane decisions for historical execution artifacts
+- broader trading-stack retention policy
+- upstream research/model orchestration
 
 ## Notes
 - docs-first migration rule still stands: keep project docs updated as the code path is clarified
