@@ -14,6 +14,10 @@ This repository should retain:
 Historical data ingestion, research, model building, and backtests are being retained in:
 - `trading-model`
 
+Reporting boundary:
+- `trading-execution` owns runtime/review producer artifacts
+- `trading-report` owns the unified downstream final report assembly built on top of those artifacts
+
 Start here:
 - `docs/README.md`
 - `src/README.md`
