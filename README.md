@@ -16,7 +16,7 @@ Historical data ingestion, research, model building, and backtests are being ret
 
 Reporting boundary:
 - `trading-execution` owns runtime/review producer artifacts
-- `trading-report` owns the unified downstream final report assembly built on top of those artifacts
+- `trading-report` owns the unified downstream final report assembly and visualization built on top of those artifacts
 
 Start here:
 - `docs/README.md`

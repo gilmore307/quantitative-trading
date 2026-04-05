@@ -67,7 +67,7 @@ The new `trading-manager` repo will absorb part of the orchestration/storage-lif
 ## Reporting boundary
 
 - [ ] migrate canonical final report assembly out of `trading-execution` and into `trading-report`
-- [ ] document the exact producer/output boundary between runtime artifacts in `trading-execution` and final report bundles in `trading-report`
+- [ ] document the exact producer/output boundary between runtime artifacts in `trading-execution` and final report/visualization layers in `trading-report`
 - [ ] inventory current `src/review/report.py` / `src/review/export.py` semantics as migration inputs for `trading-report`
 - [ ] keep `trading-execution` focused on machine-readable runtime/review producer outputs and artifact contracts
 - [ ] treat repo-local report/export code as migration material unless producer-side requirements force it to stay
